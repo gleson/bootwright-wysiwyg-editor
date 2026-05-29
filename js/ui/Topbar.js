@@ -116,7 +116,7 @@ export class Topbar {
       title: t('topbar.findReplace'),
     }, [icon('binoculars')]);
     this.btnFindReplace.addEventListener('click',
-      () => this.editor.ui.findReplace?.show());
+      () => this.editor.ui.findReplace?.toggle());
     this.startGroup.appendChild(this.btnFindReplace);
 
     // Personalização (CSS, blocos, templates)

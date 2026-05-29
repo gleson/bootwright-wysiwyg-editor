@@ -25,6 +25,7 @@
     "clean": "node -e \"import('node:fs').then(fs => fs.rmSync('dist', { recursive: true, force: true }))\""
   },
   "devDependencies": {
+    "@playwright/test": "^1.60.0",
     "esbuild": "^0.24.0"
   }
 }

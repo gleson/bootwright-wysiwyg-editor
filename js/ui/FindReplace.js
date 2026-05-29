@@ -80,9 +80,9 @@ export class FindReplace {
     }
     this._buildPanel();
     this._panel.dataset.mode = 'find';
-    // Prepend para que `position: sticky; top: …` mantenha o painel sempre
-    // visível no topo enquanto o usuário rola o canvas.
-    this.canvasWrapper.prepend(this._panel);
+    // Painel é `position: absolute` no canvas-wrapper — flutua sobre o canvas
+    // sem reduzir a área visível de edição.
+    this.canvasWrapper.appendChild(this._panel);
     this._findInput.focus();
     // Pré-preenche com a seleção atual do navegador se houver.
     const sel = document.getSelection()?.toString();
@@ -91,6 +91,12 @@ export class FindReplace {
       this._runSearch();
       this._findInput.select();
     }
+  }
+
+  /** Abre se fechado, fecha se aberto. Usado pelo botão da topbar. */
+  toggle() {
+    if (this._panel) this.close();
+    else this.show();
   }
 
   close() {

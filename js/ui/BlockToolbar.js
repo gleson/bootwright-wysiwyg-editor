@@ -70,12 +70,15 @@ export class BlockToolbar {
       () => this._openComments());
     this.btnLock   = this._actionBtn('unlock', 'Travar bloco',
       () => this._toggleLock());
+    this.btnSavePattern = this._actionBtn('bookmark-plus',
+      'Salvar como padrão reutilizável',
+      () => this._saveAsPattern());
     this.btnDup    = this._actionBtn('files',      'Duplicar (Ctrl+D)',         () => this._duplicate());
     this.btnDel    = this._actionBtn('trash',      'Excluir (Delete)',          () => this._delete(), 'danger');
 
     toolbar.append(this.btnDrag, this.labelEl,
       this.btnParent, this.btnUp, this.btnDown, this.btnEditImage,
-      this.btnComment, this.btnLock, this.btnDup, this.btnDel);
+      this.btnComment, this.btnLock, this.btnSavePattern, this.btnDup, this.btnDel);
     return toolbar;
   }
 
@@ -206,6 +209,33 @@ export class BlockToolbar {
 
   _duplicate() { this.editor.duplicateBlock(this.targetId); }
   _delete()    { this.editor.removeBlock(this.targetId); }
+
+  /**
+   * Salva o bloco selecionado (com toda a árvore de filhos + props + classes)
+   * como template reutilizável — equivalente ao "Criar padrão" do Gutenberg.
+   * Pede nome via notify.prompt e chama editor.saveAsTemplate. O template
+   * aparece imediatamente na aba "Templates" da sidebar esquerda e nas demais
+   * superfícies (slash menu, command palette, customization dialog).
+   */
+  async _saveAsPattern() {
+    if (!this.targetId) return;
+    const node = this.editor.getNode(this.targetId);
+    if (!node) return;
+    const defaultName = `${node.type.charAt(0).toUpperCase() + node.type.slice(1)} reutilizável`;
+    const name = await this.editor.notify.prompt(
+      'Salva este bloco (com toda sua estrutura e personalização) como padrão reutilizável. ' +
+      'O padrão fica disponível na aba "Templates" para inserir em qualquer canvas.',
+      defaultName,
+      { title: 'Salvar bloco como padrão',
+        placeholder: 'Ex.: Hero CTA azul', okLabel: 'Salvar' });
+    if (!name) return;
+    const tpl = this.editor.saveAsTemplate(this.targetId, name);
+    if (tpl) {
+      this.editor.notify.toast(`Padrão "${tpl.name}" salvo.`, 'success');
+    } else {
+      this.editor.notify.toast('Não foi possível salvar o padrão.', 'error');
+    }
+  }
   _toggleLock() {
     if (this.targetId) {
       this.editor.toggleLock(this.targetId);
