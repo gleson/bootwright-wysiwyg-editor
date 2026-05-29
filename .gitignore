@@ -35,9 +35,8 @@ Thumbs.db
 *.swp
 *.swo
 
-# Claude Code (local-only config + eval workspaces; skills are kept)
-.claude/settings.local.json
-.claude/skills/*-workspace/
+# Claude Code (local-only config, skills, workspaces — todo o conteúdo do diretório)
+.claude/
 
 # Misc
 *.tmp
