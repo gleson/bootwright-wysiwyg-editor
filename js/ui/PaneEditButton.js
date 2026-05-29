@@ -47,6 +47,16 @@ export class PaneEditButton {
     this.canvasWrapper.addEventListener('scroll',
       () => this._scheduleReposition(), { passive: true });
     window.addEventListener('resize', () => this._scheduleReposition());
+
+    // Eventos do Bootstrap (bubbling até o wrapper): trocar de aba, expandir
+    // outro item do acordeão ou deslizar o carrossel muda qual painel está
+    // ativo/visível — o botão precisa reposicionar sobre o novo alvo.
+    for (const evt of ['shown.bs.tab', 'shown.bs.collapse',
+                       'hidden.bs.collapse', 'slid.bs.carousel']) {
+      this.canvasWrapper.addEventListener(evt, () => {
+        if (this.targetId) this._scheduleReposition();
+      });
+    }
   }
 
   _show(id) {

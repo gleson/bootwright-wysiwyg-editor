@@ -1,6 +1,6 @@
 import { Block } from '../Block.js';
 import { spacingControls, advancedControls } from '../common-controls.js';
-import { RICH_TEXT_FULL_PROFILE, BLOCK_CONTENT_PROFILE } from './Paragraph.js';
+import { BLOCK_CONTENT_PROFILE } from './Paragraph.js';
 
 /**
  * Accordion — itens colapsáveis. `props.items` é array de `{ title, content }`.
@@ -8,7 +8,8 @@ import { RICH_TEXT_FULL_PROFILE, BLOCK_CONTENT_PROFILE } from './Paragraph.js';
  * Edição:
  *  - Painel lateral: gerenciamento visual via controle `items-list`.
  *  - Canvas: dblclick no botão do item edita o título; dblclick no corpo
- *    abre rich-text edit (HTML sanitizado por `RICH_TEXT_FULL_PROFILE`).
+ *    abre rich-text edit (HTML sanitizado por `BLOCK_CONTENT_PROFILE`, o mesmo
+ *    do render — preserva img/botões/iframes inseridos via modal).
  *
  * Retrocompat: aceita formato legado em string ("Título | Conteúdo" por linha).
  */
@@ -153,7 +154,10 @@ export class Accordion extends Block {
         write: (n, v) => Accordion._patchItem(n, idx, { content: v }),
         html: true,
         multiline: true,
-        sanitizeProfile: RICH_TEXT_FULL_PROFILE,
+        // Mesmo perfil do armazenamento/render (`_writeContent`): preserva
+        // img/button/iframe inseridos via modal. Usar o perfil só-inline aqui
+        // apagaria esse conteúdo ao entrar/confirmar a edição.
+        sanitizeProfile: BLOCK_CONTENT_PROFILE,
       };
     }
     return null;
@@ -177,7 +181,7 @@ export class Accordion extends Block {
         contentInlineOpts: {
           html: true,
           multiline: true,
-          sanitizeProfile: RICH_TEXT_FULL_PROFILE,
+          sanitizeProfile: BLOCK_CONTENT_PROFILE,
         },
         modalEditor: true,
         defaultItem: { title: 'Novo item', content: '' },
