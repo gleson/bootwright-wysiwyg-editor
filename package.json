@@ -1,0 +1,30 @@
+{
+  "name": "bootwright",
+  "version": "1.1.0",
+  "description": "Bootwright — WYSIWYG Editor modular híbrido (Gutenberg + Elementor) em Vanilla JS + Bootstrap 5.3, embutível em qualquer stack (Django, Laravel, Rails, Express, ...).",
+  "type": "module",
+  "private": true,
+  "main": "dist/wysiwyg.esm.js",
+  "module": "dist/wysiwyg.esm.js",
+  "types": "dist/wysiwyg.d.ts",
+  "bin": {
+    "wysiwyg-convert": "bin/wysiwyg-convert.mjs"
+  },
+  "files": [
+    "dist/",
+    "types/",
+    "bin/",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "build": "node build.mjs",
+    "build:dev": "node build.mjs --dev",
+    "watch": "node build.mjs --watch",
+    "collab": "node server/collab-server.mjs",
+    "convert": "node bin/wysiwyg-convert.mjs",
+    "clean": "node -e \"import('node:fs').then(fs => fs.rmSync('dist', { recursive: true, force: true }))\""
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.0"
+  }
+}

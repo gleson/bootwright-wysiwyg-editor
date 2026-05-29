@@ -1,0 +1,74 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://wysiwyg.local/schema/v1.json",
+  "title": "WysiwygEditor Tree v1",
+  "description": "Forma canônica da árvore de blocos produzida por Editor.exportJSON(). Use para validar payload de save no backend ou para escrever renderers server-side.",
+  "definitions": {
+    "blockNode": {
+      "type": "object",
+      "required": ["type", "props", "classes", "attrs", "children"],
+      "properties": {
+        "id":       { "type": "string" },
+        "type":     { "type": "string", "minLength": 1 },
+        "props":    { "type": "object", "additionalProperties": true },
+        "classes":  { "type": "array",  "items": { "type": "string" } },
+        "attrs": {
+          "type": "object",
+          "additionalProperties": {
+            "type": ["string", "number", "boolean", "null"]
+          }
+        },
+        "children": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/blockNode" }
+        }
+      }
+    },
+    "seoMeta": {
+      "type": "object",
+      "properties": {
+        "title":       { "type": "string" },
+        "description": { "type": "string" },
+        "canonical":   { "type": "string" },
+        "ogImage":     { "type": "string" },
+        "ogType":      { "type": "string" },
+        "robots":      { "type": "string" },
+        "lang":        { "type": "string" }
+      }
+    },
+    "reviewComment": {
+      "type": "object",
+      "required": ["id", "text", "author", "createdAt", "resolved"],
+      "properties": {
+        "id":         { "type": "string" },
+        "text":       { "type": "string" },
+        "author":     { "type": "string" },
+        "createdAt":  { "type": "string", "format": "date-time" },
+        "resolved":   { "type": "boolean" }
+      }
+    }
+  },
+  "type": "object",
+  "required": ["type", "props", "classes", "attrs", "children"],
+  "properties": {
+    "type":    { "const": "root" },
+    "id":      { "type": "string" },
+    "props": {
+      "type": "object",
+      "properties": {
+        "seo":      { "$ref": "#/definitions/seoMeta" },
+        "comments": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": { "$ref": "#/definitions/reviewComment" }
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "classes":  { "type": "array", "items": { "type": "string" } },
+    "attrs":    { "type": "object" },
+    "children": { "type": "array", "items": { "$ref": "#/definitions/blockNode" } }
+  }
+}

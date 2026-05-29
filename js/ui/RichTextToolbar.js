@@ -1,0 +1,237 @@
+import { el, icon } from '../utils/dom.js';
+
+/**
+ * RichTextToolbar — barra flutuante de formatação que aparece durante a
+ * edição inline de blocos `editableHtml`.
+ *
+ * Botões: Bold / Italic / Underline / Link / Clear.
+ * Implementação via document.execCommand (bem suportado em todos os browsers
+ * modernos para esses 5 comandos, apesar do "deprecated" formal do spec).
+ *
+ * Posicionamento: ancorada acima do elemento em edição, recalcula em scroll
+ * e em selectionchange para acompanhar o caret.
+ */
+export class RichTextToolbar {
+  constructor(editor) {
+    this.editor = editor;
+    this.toolbar = null;
+    this.editingEl = null;
+    this._rafId = null;
+  }
+
+  mount() {
+    this.editor.bus.on('inline-edit:started', ({ id, useHtml }) => {
+      if (!useHtml) return;
+      this._show(id);
+    });
+    this.editor.bus.on('inline-edit:ended', () => this._hide());
+    document.addEventListener('selectionchange', () => this._reposition());
+    window.addEventListener('scroll', () => this._reposition(), true);
+    window.addEventListener('resize',  () => this._reposition());
+  }
+
+  _show(id) {
+    this.editingEl = this.editor.renderer?.nodeElements.get(id);
+    if (!this.editingEl) return;
+
+    this.toolbar = el('div', {
+      class: 'editor-rich-toolbar',
+      role: 'toolbar',
+      'aria-label': 'Formatação de texto',
+    });
+    this.toolbar.append(
+      this._btn('Negrito (Ctrl+B)',    'type-bold',      () => this._exec('bold')),
+      this._btn('Itálico (Ctrl+I)',    'type-italic',    () => this._exec('italic')),
+      this._btn('Sublinhado (Ctrl+U)', 'type-underline', () => this._exec('underline')),
+      this._sep(),
+      this._btn('Inserir/editar link', 'link-45deg',     () => this._link()),
+      this._btn('Remover link',        'link',           () => this._exec('unlink')),
+      this._sep(),
+      this._btn('Limpar formatação',   'eraser',         () => this._clearFormatting()),
+    );
+    document.body.appendChild(this.toolbar);
+    this._reposition();
+
+    // Ctrl+B/I/U dentro do contenteditable já são nativos do browser, mas
+    // adicionamos handlers extras pra garantir que o comando dispare mesmo
+    // se o browser bloquear (alguns motores).
+    this._keyHandler = (e) => {
+      if (!(e.ctrlKey || e.metaKey)) return;
+      const k = e.key.toLowerCase();
+      if (k === 'b') { e.preventDefault(); this._exec('bold'); }
+      else if (k === 'i') { e.preventDefault(); this._exec('italic'); }
+      else if (k === 'u') { e.preventDefault(); this._exec('underline'); }
+    };
+    this.editingEl.addEventListener('keydown', this._keyHandler);
+  }
+
+  _hide() {
+    if (this.editingEl && this._keyHandler) {
+      this.editingEl.removeEventListener('keydown', this._keyHandler);
+    }
+    this.toolbar?.remove();
+    this.toolbar = null;
+    this.editingEl = null;
+    this._keyHandler = null;
+  }
+
+  _btn(title, iconName, onClick) {
+    const btn = el('button', {
+      type: 'button',
+      class: 'editor-rich-toolbar__btn',
+      title, 'aria-label': title,
+    }, [icon(iconName)]);
+    // mousedown (não click) → não rouba o foco do contenteditable, e a
+    // selection do usuário fica intacta para execCommand operar nela.
+    btn.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      onClick();
+      // Re-foca o elemento em edição para o caret continuar visível.
+      this.editingEl?.focus();
+    });
+    return btn;
+  }
+
+  _sep() {
+    return el('div', { class: 'editor-rich-toolbar__sep', 'aria-hidden': 'true' });
+  }
+
+  _exec(command, value = null) {
+    if (!this.editingEl) return;
+    try {
+      document.execCommand(command, false, value);
+    } catch (err) {
+      console.warn(`[RichTextToolbar] execCommand "${command}" falhou:`, err);
+    }
+  }
+
+  _clearFormatting() {
+    if (!this.editingEl) return;
+    const sel = document.getSelection();
+
+    // Se não houver seleção ativa OU ela estiver colapsada, abrange tudo no
+    // editável — execCommand('removeFormat') é no-op em range colapsado.
+    const hasRange = sel?.rangeCount > 0;
+    const collapsed = !hasRange || sel.getRangeAt(0).collapsed;
+    if (collapsed) {
+      const range = document.createRange();
+      range.selectNodeContents(this.editingEl);
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+
+    document.execCommand('removeFormat', false, null);
+    document.execCommand('unlink', false, null);
+
+    // execCommand não remove `class` nem spans com `style` — limpeza manual.
+    // Escopo: todo o editável (o range pode ter sido normalizado).
+    // Inclui o próprio editingEl: ele pode ter style/class herdado do render
+    // do bloco (ex.: white-space: pre-wrap no Paragraph) que o usuário quer
+    // ver embora. Se o render reaplicar, é coisa do bloco — não da seleção.
+    const stylish = [this.editingEl, ...this.editingEl.querySelectorAll('[style], [class]')];
+    for (const node of stylish) {
+      node.removeAttribute('style');
+      node.removeAttribute('class');
+    }
+    // Desembrulha <span> remanescentes (já sem atributos úteis).
+    for (const span of this.editingEl.querySelectorAll('span')) {
+      const parent = span.parentNode;
+      while (span.firstChild) parent.insertBefore(span.firstChild, span);
+      parent.removeChild(span);
+    }
+
+    // Notifica para o blur/sync detectar mudança.
+    this.editingEl.dispatchEvent(new InputEvent('input', { bubbles: true }));
+  }
+
+  async _link() {
+    if (!this.editingEl) return;
+    // Lê estado atual do link se cursor está dentro de <a>
+    const sel = document.getSelection();
+    let currentLink = null;
+    if (sel?.rangeCount) {
+      const node = sel.getRangeAt(0).startContainer;
+      const a = (node instanceof Element ? node : node.parentElement)?.closest?.('a');
+      if (a) {
+        currentLink = {
+          el: a,
+          url:    a.getAttribute('href')   || '',
+          target: a.getAttribute('target') || '',
+          rel:    a.getAttribute('rel')    || '',
+        };
+      }
+    }
+    // Salva a Range ANTES de abrir o dialog — o modal mata a selection.
+    const savedRange = sel?.rangeCount ? sel.getRangeAt(0).cloneRange() : null;
+
+    const result = await this.editor.notify.linkDialog({
+      url:    currentLink?.url    ?? '',
+      target: currentLink?.target ?? '',
+      rel:    currentLink?.rel    ?? '',
+      hasLink: !!currentLink,
+    });
+    if (result === null) return;
+
+    // Restaura a selection
+    if (savedRange) {
+      const s = document.getSelection();
+      s.removeAllRanges();
+      s.addRange(savedRange);
+    }
+    this.editingEl.focus();
+
+    // "Remover link"
+    if (result.remove) {
+      this._exec('unlink');
+      this.editingEl.dispatchEvent(new InputEvent('input', { bubbles: true }));
+      return;
+    }
+
+    if (!result.url) {
+      this._exec('unlink');
+    } else if (currentLink) {
+      // Edição direta — não usa execCommand pra não perder o range em texto que
+      // já está envolvido pelo <a>. Atualiza atributos no elemento existente.
+      currentLink.el.setAttribute('href', result.url);
+      this._setOrRemove(currentLink.el, 'target', result.target);
+      this._setOrRemove(currentLink.el, 'rel',    result.rel);
+    } else {
+      // Inserção nova
+      this._exec('createLink', result.url);
+      // Pega o(s) link(s) recém-criado(s) e aplica target/rel.
+      const links = this.editingEl.querySelectorAll(
+        `a[href="${CSS.escape(result.url)}"]`
+      );
+      for (const a of links) {
+        this._setOrRemove(a, 'target', result.target);
+        this._setOrRemove(a, 'rel',    result.rel);
+      }
+    }
+    // Trigger pra blur/sync detectar mudança.
+    this.editingEl.dispatchEvent(new InputEvent('input', { bubbles: true }));
+  }
+
+  _setOrRemove(el, attr, value) {
+    if (value) el.setAttribute(attr, value);
+    else       el.removeAttribute(attr);
+  }
+
+  _reposition() {
+    if (!this.toolbar || !this.editingEl) return;
+    if (this._rafId) cancelAnimationFrame(this._rafId);
+    this._rafId = requestAnimationFrame(() => {
+      this._rafId = null;
+      if (!this.toolbar || !this.editingEl) return;
+      const rect = this.editingEl.getBoundingClientRect();
+      const tw = this.toolbar.offsetWidth;
+      const th = this.toolbar.offsetHeight;
+      // Acima do elemento; cai para baixo se não houver espaço.
+      const top  = rect.top - th - 6 < 8
+        ? rect.bottom + 6
+        : rect.top - th - 6;
+      const left = Math.max(8, Math.min(rect.left, window.innerWidth - tw - 8));
+      this.toolbar.style.top  = `${top + window.scrollY}px`;
+      this.toolbar.style.left = `${left + window.scrollX}px`;
+    });
+  }
+}

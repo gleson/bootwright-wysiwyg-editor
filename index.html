@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bootwright — WYSIWYG Editor</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+  <div id="editor-root" class="editor-shell" role="application" aria-label="Bootwright WYSIWYG Editor">
+
+    <header class="editor-topbar" role="toolbar" aria-label="Comandos do editor">
+      <div class="editor-topbar__group editor-topbar__group--start">
+        <span class="editor-topbar__brand" title="Bootwright WYSIWYG Editor">
+          <i class="bi bi-tools" aria-hidden="true"></i>
+          <span><strong>Bootwright</strong> <span class="editor-topbar__brand-suffix">WYSIWYG Editor</span></span>
+        </span>
+      </div>
+
+      <div class="editor-topbar__group editor-topbar__group--center" data-region="device-switch" role="group" aria-label="Visualização por dispositivo">
+        <button type="button" class="btn btn-sm btn-outline-secondary" data-device="desktop" title="Desktop" aria-label="Desktop" disabled>
+          <i class="bi bi-display" aria-hidden="true"></i>
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-secondary" data-device="tablet" title="Tablet" aria-label="Tablet" disabled>
+          <i class="bi bi-tablet" aria-hidden="true"></i>
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-secondary" data-device="mobile" title="Mobile" aria-label="Mobile" disabled>
+          <i class="bi bi-phone" aria-hidden="true"></i>
+        </button>
+      </div>
+
+      <div class="editor-topbar__group editor-topbar__group--end" data-region="actions" role="group" aria-label="Ações de histórico e salvamento">
+        <button type="button" class="btn btn-sm btn-outline-secondary" data-action="undo" title="Desfazer (Ctrl+Z)" aria-label="Desfazer" disabled>
+          <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-secondary" data-action="redo" title="Refazer (Ctrl+Shift+Z)" aria-label="Refazer" disabled>
+          <i class="bi bi-arrow-clockwise" aria-hidden="true"></i>
+        </button>
+        <button type="button" class="btn btn-sm btn-primary" data-action="save" title="Salvar (Ctrl+S)" aria-label="Salvar" disabled>
+          <i class="bi bi-save" aria-hidden="true"></i>
+          <span>Salvar</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="editor-body">
+
+      <aside class="editor-sidebar editor-sidebar--left" data-region="sidebar-left" role="region" aria-label="Biblioteca de blocos e estrutura">
+        <div class="editor-sidebar__placeholder">
+          <i class="bi bi-grid-3x3-gap" aria-hidden="true"></i>
+          <p>Biblioteca de blocos</p>
+          <small>Carregando…</small>
+        </div>
+      </aside>
+
+      <main class="editor-canvas-wrapper" data-region="canvas-wrapper" role="region" aria-label="Área de edição">
+        <div class="editor-canvas" data-region="canvas" data-device="desktop" tabindex="0" aria-label="Canvas de edição. Use a aba Blocos para inserir conteúdo.">
+          <!-- Placeholder e blocos são gerenciados pelo Renderer -->
+        </div>
+      </main>
+
+      <aside class="editor-sidebar editor-sidebar--right" data-region="sidebar-right" role="region" aria-label="Propriedades do bloco selecionado">
+        <div class="editor-sidebar__placeholder">
+          <i class="bi bi-sliders" aria-hidden="true"></i>
+          <p>Propriedades</p>
+          <small>Selecione um bloco para editá-lo</small>
+        </div>
+      </aside>
+
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.7/dist/purify.min.js"></script>
+  <script type="module" src="./js/main.js"></script>
+</body>
+</html>

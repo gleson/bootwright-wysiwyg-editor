@@ -1,0 +1,3047 @@
+/* ===========================================================================
+   Bootwright WYSIWYG Editor — estilos do "chrome" do editor
+   ---------------------------------------------------------------------------
+   Escopo:
+   - Estiliza apenas a UI do editor (.editor-*).
+   - Não tocar em estilos do conteúdo do canvas — esses virão das classes do
+     Bootstrap aplicadas pelos próprios blocos.
+   - Variáveis ficam em :root para serem facilmente sobrescritas por temas.
+   =========================================================================== */
+
+/* Animações on-scroll — usadas no canvas (preview) e na página publicada. */
+@import './scroll-animate.css';
+
+:root {
+  --editor-topbar-height: 48px;
+  --editor-sidebar-width-left: 280px;
+  --editor-sidebar-width-right: 320px;
+
+  --editor-bg: #f3f4f6;
+  --editor-surface: #ffffff;
+  --editor-border: #e5e7eb;
+  --editor-text-muted: #6b7280;
+
+  --editor-canvas-max-desktop: 100%;
+  --editor-canvas-max-tablet: 768px;
+  --editor-canvas-max-mobile: 380px;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  background: var(--editor-bg);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* ---------- Shell ---------- */
+.editor-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ---------- Topbar ---------- */
+.editor-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--editor-topbar-height);
+  padding: 0 0.75rem;
+  background: var(--editor-surface);
+  border-bottom: 1px solid var(--editor-border);
+  flex-shrink: 0;
+}
+
+.editor-topbar__group {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.editor-topbar__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.editor-topbar__brand i {
+  color: #0d6efd;
+  font-size: 1.1rem;
+}
+
+.editor-topbar__brand-suffix {
+  font-weight: 400;
+  color: var(--editor-muted, #6c757d);
+  font-size: 0.85em;
+  margin-left: 0.25rem;
+}
+
+/* ---------- Body (sidebars + canvas) ---------- */
+.editor-body {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.editor-sidebar {
+  background: var(--editor-surface);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.editor-sidebar--left {
+  width: var(--editor-sidebar-width-left);
+  border-right: 1px solid var(--editor-border);
+}
+
+.editor-sidebar--right {
+  width: var(--editor-sidebar-width-right);
+  border-left: 1px solid var(--editor-border);
+}
+
+.editor-sidebar__placeholder {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  color: var(--editor-text-muted);
+  text-align: center;
+  overflow-y: auto;
+}
+
+.editor-sidebar__placeholder i {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  opacity: 0.5;
+}
+
+.editor-sidebar__placeholder p {
+  margin: 0 0 0.25rem;
+  font-weight: 500;
+}
+
+.editor-sidebar__placeholder small {
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+
+/* ---------- Canvas ---------- */
+.editor-canvas-wrapper {
+  flex: 1 1 auto;
+  overflow: auto;
+  padding: 1.5rem;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-width: 0;
+  position: relative;  /* BlockToolbar é posicionada absoluta dentro do wrapper */
+}
+
+.editor-canvas {
+  width: 100%;
+  background: var(--editor-surface);
+  border: 1px solid var(--editor-border);
+  border-radius: 4px;
+  min-height: calc(100vh - var(--editor-topbar-height) - 3rem);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  transition: max-width 0.25s ease;
+}
+
+.editor-canvas[data-device="desktop"] { max-width: var(--editor-canvas-max-desktop); }
+.editor-canvas[data-device="tablet"]  { max-width: var(--editor-canvas-max-tablet); }
+.editor-canvas[data-device="mobile"]  { max-width: var(--editor-canvas-max-mobile); }
+
+.editor-canvas__placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 320px;
+  padding: 3rem 1rem;
+  color: var(--editor-text-muted);
+  text-align: center;
+}
+
+.editor-canvas__placeholder i {
+  font-size: 2.5rem;
+  margin-bottom: 0.75rem;
+  opacity: 0.4;
+}
+
+.editor-canvas__placeholder p {
+  margin: 0 0 0.25rem;
+  font-weight: 500;
+}
+
+/* ---------- Estado pronto (depuração visual) ---------- */
+.editor-shell[data-editor-ready="true"] .editor-topbar__brand::after {
+  content: "•";
+  color: #16a34a;
+  margin-left: 0.25rem;
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+/* ---------- Toggle de sidebars ---------- */
+.editor-shell--no-sidebars .editor-sidebar { display: none; }
+
+/* ---------- Indicador de auto-save (topbar) ---------- */
+.editor-save-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.78rem;
+  color: var(--editor-text-muted);
+  padding: 0 0.5rem;
+  white-space: nowrap;
+}
+.editor-save-status[data-state="dirty"]  { color: #d97706; }
+.editor-save-status[data-state="saved"]  { color: #16a34a; }
+.editor-save-status[data-state="saving"] { color: #0d6efd; }
+.editor-save-status__icon { font-size: 0.95rem; }
+.editor-save-status__icon--spin {
+  animation: editorSpin 0.9s linear infinite;
+}
+@keyframes editorSpin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* ---------- Tabs reusáveis ---------- */
+.editor-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--editor-border);
+  padding: 0 0.25rem;
+  background: #fafbfc;
+  flex-shrink: 0;
+}
+.editor-tabs__btn {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  padding: 0.5rem 0.625rem;
+  font-size: 0.8rem;
+  color: var(--editor-text-muted);
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  transition: color 0.15s, border-color 0.15s;
+}
+.editor-tabs__btn:hover:not(:disabled) { color: #111827; }
+.editor-tabs__btn.active {
+  color: #0d6efd;
+  border-bottom-color: #0d6efd;
+}
+.editor-tabs__btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ---------- Painel de sidebar (conteúdo das abas) ---------- */
+.editor-sidebar__panel {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 0.5rem 0;
+}
+.editor-sidebar__panel[hidden] { display: none; }
+.editor-sidebar__panel .editor-sidebar__placeholder { padding: 1.5rem 1rem; }
+
+/* ---------- Outline ---------- */
+.editor-outline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 0.825rem;
+}
+.editor-outline--sub { padding-left: 0; }
+.editor-outline__item { margin: 0; }
+.editor-outline__label {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.3rem 0.625rem;
+  cursor: pointer;
+  color: #374151;
+  user-select: none;
+  border-left: 2px solid transparent;
+}
+.editor-outline__label:hover { background: #f3f4f6; }
+.editor-outline__label--active {
+  background: #dbeafe;
+  color: #1e40af;
+  border-left-color: #1e40af;
+}
+.editor-outline__label strong {
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+.editor-outline__preview {
+  color: var(--editor-text-muted);
+  font-style: italic;
+  font-size: 0.75rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 0 1 auto;
+  min-width: 0;
+}
+.editor-outline__empty {
+  color: var(--editor-text-muted);
+  font-style: italic;
+  text-align: center;
+  padding: 1.5rem 0.75rem;
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+/* ---------- Inspector (sidebar direita, bloco selecionado) ---------- */
+.editor-sidebar__header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--editor-border);
+  background: #fafbfc;
+  flex-shrink: 0;
+}
+.editor-sidebar__chip {
+  display: inline-block;
+  padding: 0.15rem 0.55rem;
+  background: #dbeafe;
+  color: #1e40af;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.editor-inspector {
+  flex: 1 1 auto;
+  overflow-y: auto;
+}
+.editor-inspector__field {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--editor-border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+.editor-inspector__label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  color: var(--editor-text-muted);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  margin: 0;
+}
+.editor-inspector__value {
+  font-size: 0.825rem;
+  color: #374151;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  word-break: break-all;
+}
+.editor-inspector__hint {
+  padding: 0.625rem 0.75rem;
+  font-size: 0.75rem;
+  color: var(--editor-text-muted);
+  font-style: italic;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.editor-inspector__actions {
+  display: flex;
+  gap: 0.375rem;
+  padding: 0.625rem 0.75rem;
+  border-top: 1px solid var(--editor-border);
+  background: #fafbfc;
+}
+.editor-inspector__actions .btn { flex: 1; }
+
+/* ---------- Biblioteca de blocos (sidebar esquerda) ---------- */
+.editor-blocks-search-wrap {
+  padding: 0.5rem 0.5rem 0;
+}
+.editor-blocks-search { width: 100%; }
+.editor-blocks-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.4rem;
+  padding: 0.5rem;
+}
+.editor-blocks-list__item {
+  appearance: none;
+  background: var(--editor-surface);
+  border: 1px solid var(--editor-border);
+  border-radius: 4px;
+  padding: 0.625rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.72rem;
+  color: #374151;
+  cursor: pointer;
+  transition: border-color 0.12s, background 0.12s, color 0.12s;
+  position: relative;
+}
+.editor-blocks-list__item:hover,
+.editor-blocks-list__item:focus-visible {
+  border-color: #0d6efd;
+  background: #eff6ff;
+  color: #0d6efd;
+  outline: none;
+}
+.editor-blocks-list__item > i {
+  font-size: 1.15rem;
+  color: #6b7280;
+}
+.editor-blocks-list__item:hover > i { color: #0d6efd; }
+
+/* Estrela toggle de favorito (top-right da tile) */
+.editor-blocks-list__star {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 1.4rem;
+  height: 1.4rem;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  border-radius: 3px;
+  color: #d1d5db;
+  opacity: 0;
+  transition: opacity 0.1s, color 0.1s, background 0.1s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.editor-blocks-list__star i { font-size: 0.85rem; color: inherit; }
+.editor-blocks-list__item:hover .editor-blocks-list__star,
+.editor-blocks-list__star:focus-visible {
+  opacity: 1;
+}
+.editor-blocks-list__star:hover {
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.1);
+}
+.editor-blocks-list__star--on {
+  color: #f59e0b;
+  opacity: 1; /* sempre visível quando favoritado */
+}
+.editor-blocks-list__star--on:hover {
+  color: #d97706;
+}
+
+.editor-blocks-list__header {
+  grid-column: 1 / -1;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--editor-text-muted);
+  font-weight: 700;
+  padding: 0.5rem 0.4rem 0.2rem;
+  margin-top: 0.5rem;
+  border-top: 1px solid var(--editor-border);
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+.editor-blocks-list__header--favorites {
+  margin-top: 0;
+  border-top: none;
+  color: #d97706;
+}
+.editor-blocks-list__header--favorites i {
+  color: #f59e0b;
+}
+.editor-blocks-list__header:first-child {
+  margin-top: 0;
+  border-top: 0;
+}
+
+/* ---------- Blocos no canvas (estados visuais) ---------- */
+.editor-canvas [data-block-id] {
+  position: relative;
+  outline: 1px solid transparent;
+  outline-offset: -1px;
+  transition: outline-color 0.1s;
+}
+.editor-canvas [data-block-id]:hover {
+  outline-color: rgba(13, 110, 253, 0.25);
+}
+.editor-canvas [data-block-id].editor-block--selected {
+  outline: 2px solid #0d6efd;
+  outline-offset: -2px;
+}
+/* Multi-seleção: tracejado roxo pra distinguir de seleção simples. */
+.editor-canvas [data-block-id].editor-block--multi {
+  outline: 2px dashed #6f42c1;
+  outline-offset: -2px;
+  background: rgba(111, 66, 193, 0.06);
+}
+
+/* Containers vazios — hint visual de "drop zone" */
+.editor-canvas [data-block-type="section"]:empty,
+.editor-canvas [data-block-type="row"]:empty,
+.editor-canvas [data-block-type="column"]:empty {
+  min-height: 64px;
+  background: rgba(13, 110, 253, 0.04);
+  border: 1px dashed rgba(13, 110, 253, 0.35);
+  border-radius: 3px;
+}
+.editor-canvas [data-block-type="section"]:empty::before,
+.editor-canvas [data-block-type="row"]:empty::before,
+.editor-canvas [data-block-type="column"]:empty::before {
+  content: attr(data-block-type);
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(13, 110, 253, 0.55);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+  pointer-events: none;
+}
+
+/* Bloco com tipo não registrado */
+.editor-block-fallback {
+  padding: 0.5rem 0.75rem;
+  background: #fef3c7;
+  border: 1px dashed #f59e0b;
+  color: #92400e;
+  font-size: 0.85rem;
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  border-radius: 3px;
+}
+
+/* ---------- BlockToolbar (flutuante acima do bloco) ---------- */
+.editor-block-toolbar {
+  position: absolute;
+  z-index: 100;
+  background: #1f2937;
+  color: #fff;
+  border-radius: 4px;
+  padding: 2px;
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.18);
+  font-size: 0.75rem;
+  user-select: none;
+}
+.editor-block-toolbar[hidden] { display: none; }
+.editor-block-toolbar__label {
+  padding: 0 0.55rem 0 0.4rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.65rem;
+  color: #9ca3af;
+  border-right: 1px solid #374151;
+  margin-right: 2px;
+  line-height: 28px;
+}
+.editor-block-toolbar__btn {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: #d1d5db;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  line-height: 1;
+  transition: background 0.1s, color 0.1s;
+}
+.editor-block-toolbar__btn:hover { background: #374151; color: #fff; }
+.editor-block-toolbar__btn--danger:hover { background: #dc2626; color: #fff; }
+.editor-block-toolbar__btn[hidden] { display: none; }
+
+/* ---------- Controles dinâmicos do inspector ---------- */
+.editor-control {
+  padding: 0.55rem 0.75rem;
+  border-bottom: 1px solid var(--editor-border);
+}
+.editor-control__label {
+  display: block;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  color: var(--editor-text-muted);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.3rem;
+}
+.editor-control__help {
+  display: block;
+  margin-top: 0.3rem;
+  color: var(--editor-text-muted);
+  font-size: 0.7rem;
+  line-height: 1.3;
+}
+.editor-control__range {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.editor-control__range input { flex: 1; }
+.editor-control__range-value {
+  min-width: 28px;
+  text-align: right;
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  font-size: 0.78rem;
+  color: #374151;
+}
+.editor-control__radio-group .btn { padding: 0.25rem 0.4rem; }
+
+.editor-inspector__tab-panel { display: block; }
+.editor-inspector__tab-panel[hidden] { display: none; }
+
+/* ---------- Switch de breakpoint (sidebar direita, topo) ---------- */
+.editor-bp-switch {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.4rem 0.55rem;
+  background: #fafbfc;
+  border-bottom: 1px solid var(--editor-border);
+  flex-shrink: 0;
+  flex-wrap: nowrap;
+}
+.editor-bp-switch__title {
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--editor-text-muted);
+  margin-right: 0.25rem;
+  white-space: nowrap;
+}
+.editor-bp-switch__btn {
+  appearance: none;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--editor-text-muted);
+  padding: 0.15rem 0.3rem;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 0.65rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  flex: 1;
+  justify-content: center;
+}
+.editor-bp-switch__btn:hover {
+  background: #fff;
+  border-color: var(--editor-border);
+  color: #111827;
+}
+.editor-bp-switch__btn.active {
+  background: #0d6efd;
+  border-color: #0d6efd;
+  color: #fff;
+}
+.editor-bp-switch__btn i { font-size: 0.85rem; }
+.editor-bp-switch__btn span { line-height: 1; }
+
+/* Body da sidebar direita (abaixo do switch) é o que pode rolar */
+.editor-sidebar__body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------- Controle composto: spacing ---------- */
+.editor-control__spacing {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.35rem;
+}
+.editor-control__spacing-side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+}
+.editor-control__spacing-side > i {
+  color: var(--editor-text-muted);
+  font-size: 0.85rem;
+}
+.editor-control__spacing-side > select {
+  width: 100%;
+  padding: 0.15rem 0.25rem;
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+/* ---------- Controle de cor compound (classe + custom + gradiente) ---------- */
+.editor-control__color {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.editor-control__color-modes .btn {
+  font-size: 0.72rem;
+  padding: 0.2rem 0.3rem;
+}
+.editor-control__color-modes .btn i {
+  font-size: 0.85rem;
+}
+.editor-control__color-panel[hidden] {
+  display: none !important;
+}
+.editor-control__color-panel input[type="color"] {
+  height: 2rem;
+  width: 100%;
+}
+.editor-control__color-preview {
+  height: 1.6rem;
+  border-radius: 4px;
+  margin-top: 0.35rem;
+  border: 1px solid var(--editor-border);
+  background: #f3f4f6;
+}
+.editor-control__color-alpha-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.35rem;
+}
+.editor-control__color-alpha-row > .small {
+  flex-shrink: 0;
+  min-width: 4.5rem;
+}
+.editor-control__color-alpha {
+  flex-grow: 1;
+}
+.editor-control__color-alpha-value {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  color: var(--editor-text-muted);
+  min-width: 2.6rem;
+  text-align: right;
+}
+.editor-control__color-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+}
+.editor-control__color-swatch {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 4px;
+  border: 1px solid var(--editor-border);
+  padding: 0;
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+.editor-control__color-swatch:hover {
+  transform: scale(1.08);
+  box-shadow: 0 0 0 2px rgba(13,110,253,0.25);
+}
+
+/* ---------- Controle de tipografia composto ---------- */
+.editor-control__typography {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.editor-control__typography-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.editor-control__typography-row > .small {
+  flex-shrink: 0;
+  min-width: 4.5rem;
+}
+.editor-control__typography-row > select {
+  flex-grow: 1;
+}
+.editor-control__typography-italic {
+  flex-shrink: 0;
+  width: 2.2rem;
+  padding: 0.25rem 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ---------- Edição inline (contenteditable ativo) ---------- */
+.editor-canvas [data-editing="true"] {
+  outline: 2px solid #16a34a !important;
+  outline-offset: -2px;
+  background: rgba(22, 163, 74, 0.04);
+  cursor: text;
+  min-height: 1em;
+}
+.editor-canvas [data-editing="true"]:focus { outline-color: #16a34a; }
+
+/* ---------- Drag & Drop ---------- */
+.editor-blocks-list__item        { cursor: grab; }
+.editor-blocks-list__item:active { cursor: grabbing; }
+
+.editor-block-toolbar__btn--drag        { cursor: grab; }
+.editor-block-toolbar__btn--drag:active { cursor: grabbing; }
+
+/* Esconde o placeholder e o hint dos containers vazios durante o drag,
+   pra dar espaço pras dropzones — sem alterar o State. */
+.editor-canvas--dragging .editor-canvas__placeholder { display: none; }
+.editor-canvas--dragging [data-block-type="section"]:empty,
+.editor-canvas--dragging [data-block-type="row"]:empty,
+.editor-canvas--dragging [data-block-type="column"]:empty {
+  background: transparent;
+  border-color: transparent;
+}
+.editor-canvas--dragging [data-block-type="section"]:empty::before,
+.editor-canvas--dragging [data-block-type="row"]:empty::before,
+.editor-canvas--dragging [data-block-type="column"]:empty::before {
+  content: none;
+}
+
+.editor-drop-zone {
+  height: 6px;
+  margin: 1px 0;
+  background: rgba(13, 110, 253, 0.10);
+  border: 1px dashed rgba(13, 110, 253, 0.35);
+  border-radius: 2px;
+  transition: background 0.1s, height 0.1s, border-color 0.1s;
+  box-sizing: border-box;
+}
+.editor-drop-zone--active {
+  background: #0d6efd;
+  height: 14px;
+  border-color: #0a58ca;
+}
+.editor-drop-zone--fill {
+  min-height: 64px;
+  height: auto;
+  background: rgba(13, 110, 253, 0.08);
+  border: 2px dashed rgba(13, 110, 253, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(13, 110, 253, 0.7);
+  font-size: 0.78rem;
+  font-weight: 500;
+  margin: 4px 0;
+}
+.editor-drop-zone--fill::before { content: 'Solte aqui'; }
+.editor-drop-zone--fill.editor-drop-zone--active {
+  background: rgba(13, 110, 253, 0.18);
+  border-color: #0d6efd;
+  color: #0d6efd;
+}
+.editor-drop-zone--invalid {
+  pointer-events: none;
+  opacity: 0.25;
+  background: rgba(220, 38, 38, 0.06);
+  border-color: rgba(220, 38, 38, 0.35);
+}
+
+/* Em containers flex (Row é display:flex) as zonas viram verticais. */
+.editor-canvas [data-block-type="row"] > .editor-drop-zone {
+  height: auto;
+  width: 6px;
+  align-self: stretch;
+  margin: 0 1px;
+  min-height: 40px;
+}
+.editor-canvas [data-block-type="row"] > .editor-drop-zone--active {
+  width: 14px;
+}
+.editor-canvas [data-block-type="row"] > .editor-drop-zone--fill {
+  min-width: 80px;
+  width: auto;
+  flex-direction: column;
+}
+
+/* ---------- Blocos novos (Fase 7) ---------- */
+
+/* Paragraph: respeita quebras de linha do textarea / inline edit */
+.editor-canvas [data-block-type="paragraph"] {
+  white-space: pre-wrap;
+}
+
+/* Spacer: visível só dentro do editor, transparente no exportHTML */
+.editor-canvas [data-block-type="spacer"] {
+  background: linear-gradient(45deg,
+    rgba(13,110,253,0.04) 25%, transparent 25%,
+    transparent 50%, rgba(13,110,253,0.04) 50%,
+    rgba(13,110,253,0.04) 75%, transparent 75%);
+  background-size: 12px 12px;
+  position: relative;
+  outline: 1px dashed rgba(13, 110, 253, 0.3);
+}
+.editor-canvas [data-block-type="spacer"]::before {
+  content: '↕ Espaçador (' attr(style) ')';
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(13, 110, 253, 0.55);
+  font-size: 0.7rem;
+  font-style: italic;
+  pointer-events: none;
+}
+
+/* Divider: hr precisa ter min-height pra ser clicável */
+.editor-canvas [data-block-type="divider"] {
+  min-height: 4px;
+  margin: 1rem 0;
+}
+
+/* Botão (renderizado como <a>) — desabilita cursor de link no editor */
+.editor-canvas a[role="button"] {
+  cursor: pointer;
+}
+
+/* Imagem placeholder (sem src) ou broken */
+.editor-canvas img[data-block-type="image"] {
+  max-width: 100%;
+  display: inline-block;
+  min-height: 40px;
+}
+
+/* HtmlEmbed wrapper */
+.editor-canvas [data-block-type="html"] {
+  min-height: 30px;
+}
+
+/* Controle composto: items-list (Tabs, Accordion, Carousel, FormSelect) */
+.editor-control__items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.editor-control__items-list-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.editor-control__items-list-row {
+  border: 1px solid var(--editor-border);
+  border-radius: 4px;
+  padding: 0.35rem 0.4rem 0.45rem;
+  background: #fafafa;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.editor-control__items-list-row-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+}
+.editor-control__items-list-row-label {
+  font-size: 0.72rem;
+  color: var(--editor-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+  flex: 0 0 auto;
+}
+.editor-control__items-list-row-actions .btn {
+  padding: 0.15rem 0.35rem;
+  font-size: 0.78rem;
+  line-height: 1;
+}
+.editor-control__items-list-row-actions .btn:disabled {
+  opacity: 0.4;
+}
+.editor-control__items-list-row-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.editor-control__items-list-row-field-label {
+  margin-bottom: 0;
+  line-height: 1.2;
+}
+.editor-control__items-list-empty {
+  padding: 0.5rem;
+  text-align: center;
+  border: 1px dashed var(--editor-border);
+  border-radius: 4px;
+}
+
+/* Controle file (upload) */
+.editor-control__file {
+  display: flex;
+  gap: 0.4rem;
+  align-items: stretch;
+}
+.editor-control__file input[type="file"] {
+  font-size: 0.75rem;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.editor-control__file input[type="file"]::file-selector-button {
+  padding: 0.2rem 0.5rem;
+  margin-right: 0.5rem;
+  background: #f3f4f6;
+  border: 1px solid var(--editor-border);
+  border-radius: 3px;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+.editor-control__file-lib {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Controle 'action' (botão sem label externa) */
+.editor-control--action {
+  padding: 0.4rem 0.75rem;
+}
+.editor-control--action .btn {
+  font-size: 0.75rem;
+}
+
+/* ---------- Tabela ---------- */
+.editor-canvas table[data-block-type="table"] td,
+.editor-canvas table[data-block-type="table"] th {
+  min-width: 60px;
+  min-height: 1.5em;
+  vertical-align: middle;
+}
+/* Hint visual: cursor de edição em hover de células fora de edição */
+.editor-canvas table[data-block-type="table"] td:hover,
+.editor-canvas table[data-block-type="table"] th:hover {
+  outline: 1px solid rgba(13, 110, 253, 0.25);
+  outline-offset: -1px;
+}
+.editor-canvas table[data-block-type="table"] [data-editing="true"] {
+  outline: 2px solid #16a34a !important;
+  background: rgba(22, 163, 74, 0.05);
+}
+/* Range de células selecionado para mesclar/separar */
+.editor-canvas table[data-block-type="table"] .is-cell-selected {
+  background: rgba(13, 110, 253, 0.18);
+  outline: 1px solid rgba(13, 110, 253, 0.55);
+  outline-offset: -1px;
+}
+
+/* ---------- Banner de restauração de sessão ---------- */
+.editor-restore-banner {
+  position: absolute;
+  top: calc(var(--editor-topbar-height) + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: 6px;
+  padding: 0.4rem 0.75rem;
+  display: inline-flex;
+  gap: 0.5rem;
+  align-items: center;
+  z-index: 200;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+  font-size: 0.85rem;
+  color: #78350f;
+}
+.editor-restore-banner > i { color: #92400e; font-size: 1rem; }
+.editor-restore-banner .btn { padding: 0.15rem 0.55rem; font-size: 0.78rem; }
+
+/* ---------- Dialog de exportação (HTML / JSON) ---------- */
+.editor-export-dialog {
+  border: 1px solid var(--editor-border);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  width: 90vw;
+  max-width: 760px;
+  max-height: 80vh;
+  background: var(--editor-surface);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.18);
+}
+.editor-export-dialog[open] {
+  display: flex;
+  flex-direction: column;
+}
+.editor-export-dialog::backdrop {
+  background: rgba(0,0,0,0.45);
+}
+.editor-export-dialog__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+.editor-export-dialog textarea {
+  flex: 1 1 auto;
+  font-size: 0.78rem;
+  resize: vertical;
+  white-space: pre;
+  min-height: 220px;
+}
+
+/* ---------- Repeater (loop Django) ---------- */
+.editor-canvas [data-block-type="repeater"] {
+  outline: 1px dashed #8b5cf6;
+  outline-offset: -1px;
+  padding: 1.25rem 0.5rem 0.5rem;
+  position: relative;
+  min-height: 48px;
+}
+.editor-canvas [data-block-type="repeater"]::before {
+  content: "{% " attr(data-repeater-label) " %}";
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: #8b5cf6;
+  color: #fff;
+  font-size: 0.62rem;
+  font-family: var(--bs-font-monospace, monospace);
+  padding: 0.1rem 0.4rem;
+  border-bottom-right-radius: 4px;
+  pointer-events: none;
+}
+
+/* ---------- Avisos / dicas no canvas (data-editor-warn / -hint) ---------- */
+.editor-canvas [data-editor-warn] {
+  position: relative;
+  outline: 1px dashed #f59e0b;
+  outline-offset: 2px;
+}
+.editor-canvas [data-editor-warn]::after {
+  content: "⚠ " attr(data-editor-warn);
+  position: absolute;
+  bottom: -0.6rem;
+  right: 0;
+  background: #f59e0b;
+  color: #1f2937;
+  font-size: 0.6rem;
+  line-height: 1.3;
+  padding: 0.05rem 0.35rem;
+  border-radius: 3px;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 5;
+}
+.editor-canvas [data-editor-hint] {
+  position: relative;
+}
+.editor-canvas [data-editor-hint]::before {
+  content: attr(data-editor-hint);
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: #6b7280;
+  color: #fff;
+  font-size: 0.6rem;
+  font-family: var(--bs-font-monospace, monospace);
+  padding: 0.05rem 0.35rem;
+  border-bottom-left-radius: 4px;
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* ---------- Biblioteca de assets ---------- */
+.editor-asset-dialog {
+  border: 1px solid var(--editor-border);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  width: 90vw;
+  max-width: 760px;
+  max-height: 80vh;
+  background: var(--editor-surface);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.18);
+}
+.editor-asset-dialog[open] {
+  display: flex;
+  flex-direction: column;
+}
+.editor-asset-dialog::backdrop {
+  background: rgba(0,0,0,0.45);
+}
+.editor-asset-dialog__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+.editor-asset-dialog__grid {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.6rem;
+  align-content: start;
+  min-height: 160px;
+}
+.editor-asset-dialog__empty {
+  grid-column: 1 / -1;
+  align-self: center;
+  text-align: center;
+  margin: 0;
+}
+.editor-asset-tile {
+  border: 1px solid var(--editor-border);
+  border-radius: 6px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+}
+.editor-asset-tile__pick {
+  border: 0;
+  padding: 0;
+  background: #f3f4f6;
+  cursor: pointer;
+  aspect-ratio: 4 / 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.editor-asset-tile__pick:hover {
+  outline: 2px solid var(--bs-primary, #0d6efd);
+  outline-offset: -2px;
+}
+.editor-asset-tile__pick img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.editor-asset-tile__icon {
+  font-size: 1.8rem;
+  color: #6b7280;
+}
+.editor-asset-tile__meta {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.4rem;
+  border-top: 1px solid var(--editor-border);
+}
+.editor-asset-tile__name {
+  flex: 1 1 auto;
+  font-size: 0.7rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #374151;
+}
+.editor-asset-tile__del {
+  flex: 0 0 auto;
+  border: 0;
+  background: transparent;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: 0.1rem 0.2rem;
+  line-height: 1;
+}
+.editor-asset-tile__del:hover {
+  color: var(--bs-danger, #dc3545);
+}
+
+/* ---------- Dialog de SEO ---------- */
+.editor-seo-dialog {
+  border: 1px solid var(--editor-border);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  width: 92vw;
+  max-width: 880px;
+  max-height: 86vh;
+  background: var(--editor-surface);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.18);
+}
+.editor-seo-dialog[open] {
+  display: flex;
+  flex-direction: column;
+}
+.editor-seo-dialog::backdrop {
+  background: rgba(0,0,0,0.45);
+}
+.editor-seo-dialog__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+.editor-seo-dialog__body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+  overflow-y: auto;
+}
+@media (max-width: 720px) {
+  .editor-seo-dialog__body { grid-template-columns: 1fr; }
+}
+.editor-seo-dialog__fields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.editor-seo-dialog__row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+.editor-seo-dialog__label-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+.editor-seo-dialog__counter {
+  font-size: 0.7rem;
+  color: #9ca3af;
+}
+.editor-seo-dialog__counter.is-over {
+  color: var(--bs-danger, #dc3545);
+  font-weight: 600;
+}
+.editor-seo-dialog__preview {
+  border-left: 1px solid var(--editor-border);
+  padding-left: 1.25rem;
+}
+@media (max-width: 720px) {
+  .editor-seo-dialog__preview {
+    border-left: 0;
+    padding-left: 0;
+    border-top: 1px solid var(--editor-border);
+    padding-top: 1rem;
+  }
+}
+.editor-seo-dialog__serp {
+  font-family: arial, sans-serif;
+  border: 1px solid var(--editor-border);
+  border-radius: 6px;
+  padding: 0.6rem 0.8rem;
+  background: #fff;
+}
+.editor-seo-dialog__serp-url {
+  color: #202124;
+  font-size: 0.78rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.editor-seo-dialog__serp-title {
+  color: #1a0dab;
+  font-size: 1.05rem;
+  line-height: 1.3;
+  margin: 0.1rem 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+}
+.editor-seo-dialog__serp-desc {
+  color: #4d5156;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.editor-seo-dialog__head {
+  background: #1e1e2e;
+  color: #cdd6f4;
+  border-radius: 6px;
+  padding: 0.6rem 0.8rem;
+  font-size: 0.72rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-height: 220px;
+  overflow-y: auto;
+  margin: 0;
+}
+
+/* ---------- Menu de contexto (botão direito) ---------- */
+.editor-context-menu {
+  position: fixed;
+  z-index: 1000;
+  background: #fff;
+  border: 1px solid var(--editor-border);
+  border-radius: 6px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  padding: 0.25rem;
+  min-width: 220px;
+  font-size: 0.85rem;
+}
+.editor-context-menu__item {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  width: 100%;
+  padding: 0.4rem 0.6rem;
+  background: transparent;
+  border: 0;
+  border-radius: 3px;
+  cursor: pointer;
+  color: #374151;
+  text-align: left;
+  font-size: 0.85rem;
+}
+.editor-context-menu__item:hover,
+.editor-context-menu__item:focus-visible {
+  background: #eff6ff;
+  color: #0d6efd;
+  outline: none;
+}
+.editor-context-menu__item--danger:hover,
+.editor-context-menu__item--danger:focus-visible {
+  background: #fee2e2;
+  color: #dc2626;
+}
+.editor-context-menu__item i { font-size: 0.95rem; }
+.editor-context-menu__label { flex: 1; }
+.editor-context-menu__item kbd {
+  font-size: 0.7rem;
+  color: var(--editor-text-muted);
+  background: #f3f4f6;
+  padding: 0.05rem 0.35rem;
+  border-radius: 2px;
+}
+.editor-context-menu__separator {
+  height: 1px;
+  background: var(--editor-border);
+  margin: 0.25rem 0.4rem;
+}
+
+/* ---------- Foco visível (acessibilidade) ---------- */
+.editor-shell button:focus-visible,
+.editor-shell input:focus-visible,
+.editor-shell select:focus-visible,
+.editor-shell textarea:focus-visible,
+.editor-shell [tabindex="0"]:focus-visible {
+  outline: 2px solid #0d6efd;
+  outline-offset: 1px;
+}
+.editor-canvas:focus-visible {
+  outline: 2px solid #0d6efd;
+  outline-offset: -2px;
+}
+
+/* ---------- Diálogo de Personalização (Fase 11) ---------- */
+.editor-customization-dialog {
+  border: none;
+  border-radius: 8px;
+  padding: 0;
+  width: min(720px, 92vw);
+  max-height: 86vh;
+  overflow: hidden;
+  flex-direction: column;
+  background: #fff;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.18);
+}
+/* Só exibe quando aberto — sem isto, `display: flex` sobrescreve o
+   `dialog:not([open]) { display: none }` nativo e o modal "trava" visível
+   após dialog.close() (backdrop some, mas o painel permanece). */
+.editor-customization-dialog[open] {
+  display: flex;
+}
+.editor-customization-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.45);
+}
+.editor-customization-dialog__header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--editor-border);
+  background: #f8f9fa;
+}
+.editor-customization-dialog__tabs {
+  padding: 0.4rem 0.75rem;
+  border-bottom: 1px solid var(--editor-border);
+  gap: 0.25rem;
+  display: flex;
+  flex-wrap: wrap;
+}
+.editor-customization-dialog__body {
+  padding: 1rem;
+  overflow-y: auto;
+  flex-grow: 1;
+}
+.editor-customization-dialog__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-top: 1px solid var(--editor-border);
+  background: #fafafa;
+}
+.editor-customization-dialog__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+}
+.editor-customization-dialog__row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--editor-border);
+  border-radius: 4px;
+  background: #fff;
+}
+.editor-customization-dialog__form {
+  border: 1px solid var(--editor-border);
+  border-radius: 6px;
+  padding: 0.85rem;
+  background: #fafafa;
+}
+.editor-customization-dialog__classes {
+  border-top: 1px dashed var(--editor-border);
+  padding-top: 0.75rem;
+}
+.editor-customization-dialog__theme-section {
+  border-top: 1px dashed var(--editor-border);
+  padding-top: 0.75rem;
+  margin-top: 0.75rem;
+}
+.editor-customization-dialog__theme-section:first-of-type {
+  border-top: none;
+  padding-top: 0;
+  margin-top: 0;
+}
+.editor-theme-swatch {
+  display: inline-block;
+  width: 1.4rem;
+  height: 1.4rem;
+  border-radius: 4px;
+  border: 1px solid var(--editor-border);
+  flex-shrink: 0;
+}
+.editor-theme-swatch--wide {
+  width: 3rem;
+}
+.editor-theme-font-preview {
+  display: inline-block;
+  width: 2.4rem;
+  text-align: center;
+  font-size: 1.05rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+/* Categoria "Meus blocos" — placeholder vazio */
+.editor-blocks-list__empty {
+  grid-column: 1 / -1;
+  padding: 0.5rem 0.25rem 0.75rem;
+}
+
+/* Painel "Templates" na sidebar esquerda */
+.editor-templates-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.5rem;
+}
+.editor-templates-list__item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--editor-border);
+  border-radius: 4px;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+  position: relative;
+}
+.editor-templates-list__item:hover {
+  border-color: #0d6efd;
+  background: #f4f8ff;
+}
+.editor-templates-list__meta {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  min-width: 0;
+}
+.editor-templates-list__meta strong {
+  font-size: 0.875rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.editor-templates-list__remove {
+  border: none;
+  background: transparent;
+  color: #b91c1c;
+  padding: 0.15rem 0.35rem;
+  border-radius: 3px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.editor-templates-list__item:hover .editor-templates-list__remove {
+  opacity: 1;
+}
+.editor-templates-list__remove:hover {
+  background: #fee2e2;
+}
+.editor-templates-list__replace,
+.editor-templates-list__edit {
+  border: none;
+  background: transparent;
+  color: #0d6efd;
+  padding: 0.15rem 0.35rem;
+  border-radius: 3px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.editor-templates-list__item:hover .editor-templates-list__replace,
+.editor-templates-list__item:hover .editor-templates-list__edit {
+  opacity: 1;
+}
+.editor-templates-list__replace:hover,
+.editor-templates-list__edit:hover {
+  background: #e0ecff;
+}
+.editor-templates-list__edit {
+  color: #6b7280;
+}
+.editor-templates-list__edit:hover {
+  background: #f3f4f6;
+  color: #111827;
+}
+.editor-templates-list__item[data-kind="page"] {
+  border-left: 3px solid #0dcaf0;
+}
+.editor-templates-list__item--editing {
+  border-color: #0d6efd;
+  background: #eff6ff;
+  box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.15);
+}
+.editor-templates-list__item--editing::before {
+  content: "✎ ";
+  color: #0d6efd;
+  font-weight: 700;
+}
+.editor-templates-list__item--builtin {
+  border-left: 3px solid #6c757d;
+  background: #f8f9fa;
+}
+.editor-templates-list__item--builtin:hover {
+  background: #f1f3f5;
+}
+
+/* Ações no topo do painel "Templates" (botão "Salvar página como template") */
+.editor-templates-actions {
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--editor-border);
+}
+.editor-templates-save-page {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+}
+
+/* Picker de classe personalizada (aba Avançado) */
+.editor-control__class-picker {
+  width: 100%;
+}
+
+/* Wrapper de snippet personalizado no canvas */
+.editor-snippet-wrapper {
+  display: contents;
+}
+
+/* ---------- Instâncias de componente ----------
+ * Outline azul-roxo discreto pra deixar claro que é uma instância
+ * sincronizada. Children "frozen" são read-only no canvas. */
+.editor-canvas .editor-component-instance {
+  outline: 1px dashed rgba(102, 16, 242, 0.35);
+  outline-offset: 2px;
+  border-radius: 2px;
+  position: relative;
+}
+.editor-canvas .editor-component-instance:hover {
+  outline-color: rgba(102, 16, 242, 0.7);
+}
+.editor-canvas .editor-component-instance--missing {
+  outline: 2px dashed #f59e0b;
+  background: rgba(245, 158, 11, 0.06);
+  padding: 0.5rem;
+}
+/* Children frozen (vindos do master) ficam visualmente "selados". */
+.editor-canvas [data-frozen="true"] {
+  pointer-events: none;
+}
+.editor-canvas .editor-component-instance > [data-frozen="true"] {
+  pointer-events: none;
+}
+
+/* ---------- Form blocks dentro do canvas ----------
+ * Bloqueia interação com inputs/select/textarea/submit pra que o click
+ * selecione o bloco em vez de focar/editar o input. Em exportHTML os
+ * elementos voltam a ser totalmente interativos. */
+.editor-canvas form input,
+.editor-canvas form select,
+.editor-canvas form textarea,
+.editor-canvas form button[type="submit"] {
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   TemplateEditBanner — faixa azul durante edição de template
+   ========================================================================== */
+
+.editor-template-edit-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.4rem 0.85rem;
+  background: linear-gradient(90deg, #0d6efd 0%, #6610f2 100%);
+  color: #fff;
+  font-size: 0.875rem;
+  border-bottom: 1px solid rgba(255,255,255,0.15);
+}
+.editor-template-edit-banner__label {
+  flex-grow: 1;
+}
+.editor-template-edit-banner__label strong {
+  font-weight: 700;
+}
+.editor-template-edit-banner__actions {
+  display: flex;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+.editor-template-edit-banner .btn-outline-light {
+  border-color: rgba(255,255,255,0.5);
+}
+
+/* ==========================================================================
+   RichTextToolbar — barra flutuante durante edição inline rich text
+   ========================================================================== */
+
+.editor-rich-toolbar {
+  position: absolute;
+  z-index: 2147483645;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.25rem;
+  background: #1f2937;
+  color: #f9fafb;
+  border-radius: 6px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+  font-size: 0.875rem;
+  user-select: none;
+}
+.editor-rich-toolbar__btn {
+  border: none;
+  background: transparent;
+  color: inherit;
+  width: 1.9rem;
+  height: 1.9rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  cursor: pointer;
+}
+.editor-rich-toolbar__btn:hover {
+  background: rgba(255,255,255,0.12);
+}
+.editor-rich-toolbar__btn:focus-visible {
+  outline: 2px solid #60a5fa;
+  outline-offset: 1px;
+}
+.editor-rich-toolbar__sep {
+  width: 1px;
+  height: 1.4rem;
+  background: rgba(255,255,255,0.2);
+  margin: 0 0.15rem;
+}
+
+/* ==========================================================================
+   Notify — toasts e modais (substituem alert/confirm/prompt nativos)
+   ========================================================================== */
+
+.editor-toast-container {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  z-index: 2147483646;
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 0.5rem;
+  pointer-events: none;
+  max-width: min(420px, calc(100vw - 2rem));
+}
+.editor-toast {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0.8rem;
+  background: #fff;
+  color: #111827;
+  border: 1px solid #d1d5db;
+  border-left: 4px solid #6b7280;
+  border-radius: 6px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+  font-size: 0.875rem;
+  pointer-events: auto;
+  animation: editorToastIn 0.18s ease-out;
+}
+.editor-toast--exit {
+  animation: editorToastOut 0.18s ease-in forwards;
+}
+.editor-toast__icon { font-size: 1.05rem; flex-shrink: 0; }
+.editor-toast__msg  { flex-grow: 1; }
+.editor-toast__close {
+  border: none;
+  background: transparent;
+  color: inherit;
+  padding: 0.1rem 0.3rem;
+  border-radius: 3px;
+  cursor: pointer;
+  opacity: 0.6;
+}
+.editor-toast__close:hover { opacity: 1; background: rgba(0,0,0,0.05); }
+.editor-toast__action { white-space: nowrap; font-weight: 600; }
+.editor-toast--info    { border-left-color: #0d6efd; }
+.editor-toast--info    .editor-toast__icon { color: #0d6efd; }
+.editor-toast--success { border-left-color: #198754; }
+.editor-toast--success .editor-toast__icon { color: #198754; }
+.editor-toast--warning { border-left-color: #f59e0b; }
+.editor-toast--warning .editor-toast__icon { color: #f59e0b; }
+.editor-toast--error   { border-left-color: #dc3545; background: #fef2f2; }
+.editor-toast--error   .editor-toast__icon { color: #dc3545; }
+
+@keyframes editorToastIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes editorToastOut {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(8px); }
+}
+
+/* Modal compartilhado (confirm/prompt) */
+.editor-modal {
+  border: none;
+  border-radius: 8px;
+  padding: 0;
+  max-width: 460px;
+  width: calc(100vw - 2rem);
+  box-shadow: 0 12px 36px rgba(0,0,0,0.2);
+}
+.editor-modal::backdrop {
+  background: rgba(15, 23, 42, 0.45);
+}
+.editor-modal__header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 0.85rem;
+  border-bottom: 1px solid var(--editor-border);
+}
+.editor-modal__header strong { flex-grow: 1; font-size: 0.95rem; }
+.editor-modal__close {
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 0.15rem 0.4rem;
+  border-radius: 3px;
+}
+.editor-modal__close:hover { background: #f3f4f6; color: #111827; }
+.editor-modal__body  { padding: 0.85rem; font-size: 0.9rem; }
+.editor-modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 0.6rem 0.85rem;
+  border-top: 1px solid var(--editor-border);
+  background: #fafafa;
+}
+
+
+/* ---------- Paleta de comandos (Ctrl+K) ---------- */
+.editor-cmd-palette {
+  border: 1px solid var(--editor-border);
+  border-radius: 10px;
+  padding: 0;
+  width: 90vw;
+  max-width: 560px;
+  max-height: 70vh;
+  margin-top: 12vh;
+  background: var(--editor-surface);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.22);
+  overflow: hidden;
+}
+.editor-cmd-palette[open] {
+  display: flex;
+  flex-direction: column;
+}
+.editor-cmd-palette::backdrop {
+  background: rgba(0,0,0,0.45);
+}
+.editor-cmd-palette__search {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 0.9rem;
+  border-bottom: 1px solid var(--editor-border);
+  color: var(--editor-text-muted);
+}
+.editor-cmd-palette__input {
+  flex: 1 1 auto;
+  border: none;
+  outline: none;
+  font-size: 0.95rem;
+  background: transparent;
+  color: #111827;
+}
+.editor-cmd-palette__list {
+  list-style: none;
+  margin: 0;
+  padding: 0.3rem 0;
+  overflow-y: auto;
+  flex: 1 1 auto;
+}
+.editor-cmd-palette__group {
+  padding: 0.4rem 0.9rem 0.2rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--editor-text-muted);
+}
+.editor-cmd-palette__item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.42rem 0.9rem;
+  font-size: 0.88rem;
+  cursor: pointer;
+  color: #1f2937;
+}
+.editor-cmd-palette__item.is-active {
+  background: #eef2ff;
+}
+.editor-cmd-palette__icon {
+  flex: 0 0 auto;
+  color: var(--editor-text-muted);
+}
+.editor-cmd-palette__item.is-active .editor-cmd-palette__icon {
+  color: #4f46e5;
+}
+.editor-cmd-palette__label {
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.editor-cmd-palette__hint {
+  flex: 0 0 auto;
+  font-size: 0.7rem;
+  color: var(--editor-text-muted);
+  background: #f3f4f6;
+  border: 1px solid var(--editor-border);
+  border-radius: 4px;
+  padding: 0.05rem 0.35rem;
+}
+.editor-cmd-palette__empty {
+  padding: 1rem 0.9rem;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--editor-text-muted);
+}
+
+/* ---------- Indicador de colaboração (WebSocket) ---------- */
+.editor-collab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-left: 0.5rem;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.78rem;
+  line-height: 1;
+  color: var(--editor-text-muted);
+  background: #f3f4f6;
+  border: 1px solid var(--editor-border);
+  border-radius: 999px;
+  cursor: default;
+  white-space: nowrap;
+}
+.editor-collab__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #9ca3af;
+  flex: 0 0 auto;
+}
+.editor-collab[data-status="connected"]    .editor-collab__dot { background: #10b981; }
+.editor-collab[data-status="connecting"]   .editor-collab__dot { background: #f59e0b; }
+.editor-collab[data-status="disconnected"] .editor-collab__dot {
+  background: #ef4444;
+  animation: editor-collab-blink 1.2s steps(1) infinite;
+}
+@keyframes editor-collab-blink {
+  50% { opacity: 0.25; }
+}
+.editor-collab__icon { font-size: 0.85rem; }
+.editor-collab__count { font-weight: 600; }
+
+/* ---------- Comentários em blocos ---------- */
+
+/* Marcador no canvas — badge no canto superior direito do bloco. */
+.editor-canvas [data-block-id].editor-block--has-comments::after {
+  content: attr(data-comment-count);
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: #f59e0b;
+  color: #fff;
+  font: 600 11px/18px system-ui, sans-serif;
+  text-align: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  pointer-events: none;
+  z-index: 2;
+}
+/* Quando tudo está resolvido (✓), troca para verde discreto. */
+.editor-canvas [data-block-id][data-comment-count="✓"].editor-block--has-comments::after {
+  background: #10b981;
+}
+
+/* Badge de contagem no botão da BlockToolbar. */
+.editor-block-toolbar__btn.has-comments {
+  position: relative;
+  color: #f59e0b;
+}
+.editor-block-toolbar__btn.has-comments::after {
+  content: attr(data-count);
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  min-width: 14px;
+  height: 14px;
+  padding: 0 3px;
+  border-radius: 7px;
+  background: #f59e0b;
+  color: #fff;
+  font: 600 9px/14px system-ui, sans-serif;
+  text-align: center;
+  pointer-events: none;
+}
+
+/* Popover flutuante (filho do canvas-wrapper, como a BlockToolbar). */
+.editor-comments {
+  position: absolute;
+  width: 300px;
+  max-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--editor-surface);
+  border: 1px solid var(--editor-border);
+  border-radius: 8px;
+  box-shadow: 0 10px 32px rgba(0,0,0,0.16);
+  z-index: 50;
+}
+.editor-comments[hidden] { display: none; }
+
+.editor-comments__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--editor-border);
+}
+.editor-comments__title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+.editor-comments__close {
+  border: none;
+  background: transparent;
+  color: var(--editor-text-muted);
+  cursor: pointer;
+  padding: 0.15rem 0.35rem;
+  border-radius: 3px;
+}
+.editor-comments__close:hover { background: #f3f4f6; color: #111827; }
+
+.editor-comments__list {
+  padding: 0.4rem 0.5rem;
+  overflow-y: auto;
+  flex: 1 1 auto;
+}
+.editor-comments__empty {
+  padding: 1rem 0.5rem;
+  text-align: center;
+  font-size: 0.82rem;
+  color: var(--editor-text-muted);
+}
+
+.editor-comments__item {
+  padding: 0.5rem 0.55rem;
+  border: 1px solid var(--editor-border);
+  border-radius: 6px;
+  margin-bottom: 0.4rem;
+  background: #fff;
+}
+.editor-comments__item.is-resolved {
+  background: #f9fafb;
+  opacity: 0.75;
+}
+.editor-comments__item.is-resolved .editor-comments__text {
+  text-decoration: line-through;
+}
+
+.editor-comments__meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 0.75rem;
+  color: var(--editor-text-muted);
+  margin-bottom: 0.25rem;
+}
+.editor-comments__meta strong { color: #111827; font-weight: 600; }
+.editor-comments__time { font-variant-numeric: tabular-nums; }
+
+.editor-comments__text {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #1f2937;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.editor-comments__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.3rem;
+  margin-top: 0.4rem;
+}
+.editor-comments__act {
+  border: 1px solid var(--editor-border);
+  background: #fff;
+  color: var(--editor-text-muted);
+  padding: 0.15rem 0.4rem;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+.editor-comments__act:hover { background: #f3f4f6; color: #111827; }
+.editor-comments__act--danger:hover { background: #fee2e2; color: #b91c1c; border-color: #fecaca; }
+
+.editor-comments__badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #047857;
+  background: #d1fae5;
+  border-radius: 999px;
+  padding: 0.05rem 0.4rem;
+  margin-right: auto;
+}
+
+.editor-comments__footer {
+  padding: 0.5rem 0.6rem;
+  border-top: 1px solid var(--editor-border);
+  background: #fafafa;
+}
+.editor-comments__input { resize: vertical; }
+
+/* ---- Slash menu (`/` no conteúdo) ---- */
+.editor-slash-menu {
+  position: absolute;
+  z-index: 60;
+  min-width: 220px;
+  max-width: 280px;
+  max-height: 280px;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid var(--editor-border);
+  border-radius: 8px;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.18);
+  padding: 0.3rem 0;
+  font-size: 0.88rem;
+}
+.editor-slash-menu__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.editor-slash-menu__item {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.38rem 0.75rem;
+  cursor: pointer;
+  color: #1f2937;
+}
+.editor-slash-menu__item.is-active {
+  background: #eef2ff;
+}
+.editor-slash-menu__icon {
+  flex: 0 0 auto;
+  color: var(--editor-text-muted);
+}
+.editor-slash-menu__item.is-active .editor-slash-menu__icon {
+  color: #4f46e5;
+}
+.editor-slash-menu__label {
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.editor-slash-menu__tag {
+  flex: 0 0 auto;
+  font-size: 0.68rem;
+  color: var(--editor-text-muted);
+  background: #f3f4f6;
+  border: 1px solid var(--editor-border);
+  border-radius: 4px;
+  padding: 0.05rem 0.35rem;
+}
+.editor-slash-menu__empty {
+  padding: 0.7rem 0.9rem;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--editor-text-muted);
+}
+
+/* ---- Find & Replace (Ctrl+F) ---- */
+.editor-find-replace {
+  position: sticky;
+  top: 0.5rem;
+  margin: 0.5rem 0.5rem 0 auto;
+  width: max-content;
+  max-width: calc(100% - 1rem);
+  z-index: 55;
+  background: #fff;
+  border: 1px solid var(--editor-border);
+  border-radius: 8px;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.14);
+  padding: 0.5rem 0.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.editor-find-replace__row {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.editor-find-replace__input {
+  min-width: 200px;
+  max-width: 260px;
+}
+.editor-find-replace__counter {
+  font-size: 0.78rem;
+  color: var(--editor-text-muted);
+  min-width: 60px;
+  text-align: right;
+  white-space: nowrap;
+}
+.editor-find-replace__case {
+  font-size: 0.78rem;
+  color: var(--editor-text-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin: 0 0.2rem;
+  cursor: pointer;
+  user-select: none;
+}
+.editor-find-hit {
+  outline: 2px solid #f59e0b;
+  outline-offset: 2px;
+  transition: outline-color 0.6s ease;
+}
+/* CSS Custom Highlight API — usada pelo Find & Replace para pintar a query
+   dentro de contenteditable sem mutar o DOM. */
+::highlight(editor-find-all) {
+  background-color: rgba(253, 224, 71, 0.45);
+}
+::highlight(editor-find-current) {
+  background-color: #f59e0b;
+  color: #1f2937;
+}
+
+/* ---- Import dialog (HTML/Markdown) ---- */
+.editor-import-dialog {
+  border: 1px solid var(--editor-border);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  width: 90vw;
+  max-width: 720px;
+  max-height: 86vh;
+  background: var(--editor-surface);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.18);
+}
+.editor-import-dialog[open] {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.editor-import-dialog::backdrop {
+  background: rgba(0,0,0,0.45);
+}
+.editor-import-dialog__header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+.editor-import-dialog__row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.6rem;
+}
+.editor-import-dialog__label {
+  font-size: 0.85rem;
+  color: var(--editor-text-muted);
+  min-width: 70px;
+  margin: 0;
+}
+.editor-import-dialog textarea {
+  flex: 1 1 auto;
+  font-size: 0.78rem;
+  resize: vertical;
+  white-space: pre;
+  min-height: 240px;
+}
+
+/* ---- Code block (syntax highlight) ---- */
+.editor-code-block {
+  background: #0f172a;
+  color: #e2e8f0;
+  border-radius: 6px;
+  padding: 0.9rem 1rem;
+  overflow-x: auto;
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+.editor-code-block code { background: transparent; padding: 0; color: inherit; }
+.editor-code-block [contenteditable="true"] { outline: 1px dashed #f59e0b; outline-offset: 4px; }
+.editor-code-block .tok-comment { color: #94a3b8; font-style: italic; }
+.editor-code-block .tok-string  { color: #fbbf24; }
+.editor-code-block .tok-keyword { color: #f472b6; font-weight: 600; }
+.editor-code-block .tok-builtin { color: #60a5fa; }
+.editor-code-block .tok-number  { color: #fb923c; }
+.editor-code-block .tok-tag     { color: #f472b6; }
+.editor-code-block .tok-attr    { color: #34d399; }
+.editor-code-block .tok-property { color: #60a5fa; }
+
+/* ---- DjangoVar badge ---- */
+[data-django-var] {
+  display: inline-block;
+  background: #ede9fe;
+  color: #5b21b6;
+  border: 1px dashed #8b5cf6;
+  border-radius: 4px;
+  padding: 0.05rem 0.4rem;
+  font-family: var(--bs-font-monospace, monospace);
+  font-size: 0.85em;
+}
+[data-django-var]:focus { outline: 1px solid #8b5cf6; outline-offset: 1px; }
+
+/* ---- A11y audit dialog ---- */
+.editor-a11y-dialog {
+  border: 1px solid var(--editor-border);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  width: 90vw;
+  max-width: 640px;
+  max-height: 80vh;
+  background: var(--editor-surface);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.18);
+}
+.editor-a11y-dialog[open] { display: flex; flex-direction: column; gap: 0.5rem; }
+.editor-a11y-dialog::backdrop { background: rgba(0,0,0,0.45); }
+.editor-a11y-dialog__header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 0.25rem;
+}
+.editor-a11y-dialog__counter { font-size: 0.85rem; color: var(--editor-text-muted); }
+.editor-a11y-dialog__list {
+  list-style: none; margin: 0; padding: 0;
+  overflow-y: auto; flex: 1 1 auto;
+  border: 1px solid var(--editor-border);
+  border-radius: 6px;
+}
+.editor-a11y-dialog__item {
+  display: flex; align-items: center; gap: 0.6rem;
+  padding: 0.55rem 0.8rem;
+  border-bottom: 1px solid var(--editor-border);
+}
+.editor-a11y-dialog__item:last-child { border-bottom: none; }
+.editor-a11y-dialog__item.is-error   .editor-a11y-dialog__sev { color: #dc2626; }
+.editor-a11y-dialog__item.is-warning .editor-a11y-dialog__sev { color: #d97706; }
+.editor-a11y-dialog__msg { flex: 1 1 auto; font-size: 0.88rem; }
+.editor-a11y-dialog__empty {
+  padding: 1rem; text-align: center;
+  color: #047857; font-size: 0.9rem;
+  display: flex; gap: 0.4rem; align-items: center; justify-content: center;
+}
+.editor-a11y-dialog__go { white-space: nowrap; }
+
+/* ---- Block locked indicator ---- */
+.editor-canvas [data-locked] {
+  outline: 1px dashed #9ca3af;
+  outline-offset: 1px;
+  position: relative;
+}
+.editor-canvas [data-locked]::after {
+  content: "\F47A"; /* bi-lock-fill */
+  font-family: "bootstrap-icons";
+  position: absolute;
+  top: 4px; right: 4px;
+  font-size: 0.75rem;
+  background: #f3f4f6;
+  color: #6b7280;
+  border-radius: 999px;
+  padding: 1px 5px;
+  pointer-events: none;
+  z-index: 2;
+}
+.editor-block-toolbar__btn.is-active {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+/* ---- Icon picker ---- */
+.editor-icon-picker {
+  border: 1px solid var(--editor-border);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  width: 90vw;
+  max-width: 720px;
+  max-height: 80vh;
+  background: var(--editor-surface);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.18);
+}
+.editor-icon-picker[open] { display: flex; flex-direction: column; gap: 0.5rem; }
+.editor-icon-picker::backdrop { background: rgba(0,0,0,0.45); }
+.editor-icon-picker__header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 0.25rem;
+}
+.editor-icon-picker__counter { font-size: 0.8rem; color: var(--editor-text-muted); }
+.editor-icon-picker__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+  gap: 0.4rem;
+  overflow-y: auto;
+  padding: 0.25rem;
+  flex: 1 1 auto;
+}
+.editor-icon-picker__cell {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 0.2rem;
+  padding: 0.5rem 0.3rem;
+  background: #fff;
+  border: 1px solid var(--editor-border);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.65rem;
+  color: var(--editor-text-muted);
+}
+.editor-icon-picker__cell:hover {
+  border-color: #4f46e5;
+  background: #eef2ff;
+  color: #4f46e5;
+}
+.editor-icon-picker__cell i {
+  font-size: 1.4rem;
+  color: #1f2937;
+}
+.editor-icon-picker__cell small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+/* ===== Image editor (modal estilo Tiny) =====
+ * Layout: header → tabs → controles (acima) → stage central (imagem) → footer.
+ * O stage tem fundo claro xadrez (mostra transparência das PNGs) e a imagem é
+ * centralizada com `object-fit: contain`. Os overlays (crop/focal) são divs
+ * absolutos posicionados sobre o `<img>` via JS (getBoundingClientRect).
+ */
+.editor-image-editor {
+  border: 1px solid var(--editor-border);
+  border-radius: 10px;
+  padding: 0;
+  width: 92vw;
+  max-width: 880px;
+  height: 90vh;
+  max-height: 90vh;
+  background: var(--editor-surface);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.22);
+  overflow: hidden;
+}
+.editor-image-editor[open] {
+  display: flex;
+  flex-direction: column;
+}
+.editor-image-editor::backdrop { background: rgba(0, 0, 0, 0.45); }
+
+.editor-image-editor__header {
+  display: flex;
+  align-items: center;
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid var(--editor-border);
+  flex: 0 0 auto;
+}
+.editor-image-editor__tabs {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.4rem 0.75rem;
+  border-bottom: 1px solid var(--editor-border);
+  background: var(--editor-bg, #f7f8fb);
+  flex-wrap: wrap;
+  flex: 0 0 auto;
+}
+.editor-image-editor__tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.35rem 0.7rem;
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  color: var(--editor-text-muted);
+  cursor: pointer;
+}
+.editor-image-editor__tab:hover { background: rgba(79, 70, 229, 0.08); color: #4f46e5; }
+.editor-image-editor__tab.is-active {
+  background: #4f46e5; color: #fff; border-color: #4f46e5;
+}
+
+.editor-image-editor__controls {
+  padding: 0.75rem 1.25rem;
+  border-bottom: 1px solid var(--editor-border);
+  background: var(--editor-surface);
+  flex: 0 0 auto;
+  max-height: 30vh;
+  overflow-y: auto;
+}
+.editor-image-editor__panel { display: flex; flex-direction: column; gap: 0.6rem; }
+.editor-image-editor__panel--adjust { gap: 0.35rem; }
+
+.editor-image-editor__footer {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.6rem 1rem;
+  border-top: 1px solid var(--editor-border);
+  background: var(--editor-bg, #f7f8fb);
+  flex: 0 0 auto;
+}
+
+/* Stage central: imagem sempre visível em todas as abas. */
+.editor-image-editor__stage {
+  position: relative;
+  flex: 1 1 auto;
+  overflow: hidden;
+  background-color: #fafafa;
+  background-image:
+    linear-gradient(45deg, #e5e7eb 25%, transparent 25%, transparent 75%, #e5e7eb 75%),
+    linear-gradient(45deg, #e5e7eb 25%, transparent 25%, transparent 75%, #e5e7eb 75%);
+  background-size: 16px 16px;
+  background-position: 0 0, 8px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 180px;
+}
+.editor-image-editor__previewImg {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  display: block;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* Linhas de slider compartilhadas (transform + adjust) */
+.editor-image-editor__slider {
+  display: grid;
+  grid-template-columns: 130px 1fr 80px 18px;
+  align-items: center;
+  gap: 0.5rem;
+}
+.editor-image-editor__slider-label { font-size: 0.85rem; color: var(--editor-text, #1f2937); }
+.editor-image-editor__slider-num { padding: 0.15rem 0.35rem; }
+.editor-image-editor__slider-suffix { font-size: 0.75rem; color: var(--editor-text-muted); }
+.editor-image-editor__slider-val {
+  font-variant-numeric: tabular-nums;
+  font-size: 0.85rem;
+  color: var(--editor-text-muted);
+  min-width: 3.2em;
+  text-align: right;
+}
+
+/* Gama */
+.editor-image-editor__gamma {
+  margin-top: 0.4rem;
+  padding-top: 0.5rem;
+  border-top: 1px dashed var(--editor-border);
+}
+
+/* Overlay de recorte — posicionado sobre o <img> via JS. */
+.editor-image-editor__cropOverlay {
+  position: absolute;
+  user-select: none;
+  pointer-events: auto;
+}
+.editor-image-editor__cropRect {
+  position: absolute;
+  border: 2px dashed #fff;
+  background: rgba(79, 70, 229, 0.10);
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.45);
+  cursor: move;
+}
+.editor-image-editor__cropHandle {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: #fff;
+  border: 1px solid #4f46e5;
+  border-radius: 50%;
+}
+.editor-image-editor__cropHandle--nw { top: -6px;  left: -6px;  cursor: nwse-resize; }
+.editor-image-editor__cropHandle--n  { top: -6px;  left: 50%; transform: translateX(-50%); cursor: ns-resize; }
+.editor-image-editor__cropHandle--ne { top: -6px;  right: -6px; cursor: nesw-resize; }
+.editor-image-editor__cropHandle--e  { top: 50%;   right: -6px; transform: translateY(-50%); cursor: ew-resize; }
+.editor-image-editor__cropHandle--se { bottom: -6px; right: -6px; cursor: nwse-resize; }
+.editor-image-editor__cropHandle--s  { bottom: -6px; left: 50%; transform: translateX(-50%); cursor: ns-resize; }
+.editor-image-editor__cropHandle--sw { bottom: -6px; left: -6px; cursor: nesw-resize; }
+.editor-image-editor__cropHandle--w  { top: 50%;   left: -6px; transform: translateY(-50%); cursor: ew-resize; }
+
+/* Overlay de foco — posicionado sobre o <img> via JS. */
+.editor-image-editor__focalOverlay {
+  position: absolute;
+  cursor: crosshair;
+}
+.editor-image-editor__focalDot {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  margin: -9px 0 0 -9px;
+  border-radius: 50%;
+  background: rgba(79, 70, 229, 0.9);
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+}
+
+/* ===== Resize handles nos cantos da imagem selecionada ===== */
+.editor-img-resize {
+  position: absolute;
+  pointer-events: none;          /* só os handles capturam pointer */
+  z-index: 30;
+  outline: 1px dashed rgba(79, 70, 229, 0.6);
+  outline-offset: 0;
+}
+.editor-img-resize__handle {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  background: #fff;
+  border: 2px solid #4f46e5;
+  border-radius: 50%;
+  pointer-events: auto;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+.editor-img-resize__handle--nw { top: -7px;    left: -7px;    cursor: nwse-resize; }
+.editor-img-resize__handle--ne { top: -7px;    right: -7px;   cursor: nesw-resize; }
+.editor-img-resize__handle--sw { bottom: -7px; left: -7px;    cursor: nesw-resize; }
+.editor-img-resize__handle--se { bottom: -7px; right: -7px;   cursor: nwse-resize; }
+
+body.editor-img-resize-dragging { cursor: nwse-resize !important; user-select: none; }
+body.editor-img-resize-dragging * { user-select: none !important; }
+
+/* Wrapper de crop CSS — a <img> interna fica em position:absolute, então não
+ * sofre interferência de regras externas (img-fluid, flex parent, etc.). */
+.editor-img-crop {
+  position: relative;
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: middle;
+}
+.editor-img-crop > img {
+  display: block;
+  max-width: none !important;
+  max-height: none !important;
+}
+
+/* ===== Botão flutuante "Editar conteúdo…" sobre painéis ativos ===== */
+.editor-pane-edit-btn {
+  position: absolute;
+  z-index: 32;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  white-space: nowrap;
+}
+.editor-pane-edit-btn[hidden] { display: none; }
+
+/* ===== ContentEditor — modal com sub-Editor ===== */
+.editor-content-editor-dialog {
+  width: 95vw;
+  max-width: none;
+  height: 95vh;
+  max-height: none;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.editor-content-editor-dialog::backdrop { background: rgba(0, 0, 0, 0.55); }
+.editor-content-editor-dialog__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.6rem 0.9rem;
+  background: #1f2937;
+  color: #fff;
+  flex-shrink: 0;
+}
+.editor-content-editor-dialog__header h5 {
+  color: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.editor-content-editor-dialog__actions {
+  display: inline-flex;
+  gap: 0.4rem;
+}
+/* O shell do sub-editor ocupa o restante do dialog. */
+.editor-content-editor-dialog__shell {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ===== ContentEditor — modo slide =====
+ * Dialog em fullscreen + barra superior com controles da imagem de fundo +
+ * canvas com backdrop ao vivo, para edição de slides de carrossel. */
+.editor-content-editor-dialog--slide {
+  width: 95vw;
+  max-width: none;
+  height: 95vh;
+}
+/* Antigas regras de slideToolbar removidas — controles agora no painel lateral */
+.editor-canvas--slide-backdrop {
+  /* `min-height` é definido inline via Carousel.applySlideBackground. */
+  background-color: #e9ecef;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+/* Melhoria dos controles na toolbar de slide */
+.editor-content-editor-dialog__field .form-control,
+.editor-content-editor-dialog__field .form-select,
+.editor-content-editor-dialog__field .btn {
+  min-height: 38px;
+}
+.editor-content-editor-dialog__field .form-label-sm {
+  font-size: 0.8125rem;
+  margin-bottom: 0.25rem;
+}
+
+/* ===== SlidePropertiesPanel — painel lateral de propriedades do slide ===== */
+.editor-content-editor-slide-panel {
+  border-bottom: 2px solid #dee2e6;
+  background: #f8f9fa;
+}
+.editor-slide-properties__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.6rem 0.9rem;
+  background: #e9ecef;
+  border: 0;
+  border-bottom: 1px solid #dee2e6;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #212529;
+  cursor: pointer;
+  text-align: left;
+}
+.editor-slide-properties__header:hover { background: #dee2e6; }
+.editor-slide-properties__header:focus-visible {
+  outline: 2px solid #0d6efd;
+  outline-offset: -2px;
+}
+.editor-slide-properties__header[data-collapsed="true"] {
+  border-bottom-color: transparent;
+}
+.editor-slide-properties__header-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.editor-slide-properties__chev {
+  display: inline-flex;
+  color: #6c757d;
+}
+.editor-slide-properties__body { background: #ffffff; }
+.editor-slide-properties__section {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #dee2e6;
+}
+.editor-slide-properties__section:last-child {
+  border-bottom: none;
+}
+.editor-slide-properties__title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.editor-slide-properties__group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.editor-slide-properties__form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.editor-slide-properties__form-group label {
+  font-size: 0.8125rem;
+  color: #6c757d;
+  margin-bottom: 0.25rem;
+}
+
+/* Adiciona scroll ao sidebar-right do ContentEditor */
+.editor-content-editor-dialog .editor-sidebar--right {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* ===== Carousel — fallback no canvas (slide com imagem quebrada) ===== */
+.editor-canvas .carousel-item {
+  min-height: 200px;
+  background-color: #f1f3f5;
+}
+
+/* Caption "flex" — sobrescreve o posicionamento absoluto e o d-none do
+ * Bootstrap. O slide é flex-container (display:flex aplicado inline) e a
+ * caption vira um filho flex normal, respeitando justify/align do pai. */
+.carousel-caption.carousel-slide-caption--flex {
+  position: relative !important;
+  right: auto !important;
+  bottom: auto !important;
+  left: auto !important;
+  top: auto !important;
+  display: block;
+  width: 100%;
+  max-width: min(960px, 92%);
+  padding: 1rem;
+  text-align: inherit;
+}
+
+/* ==========================================================================
+   CompactEditor — dialog full-screen com barra de ferramentas no topo
+   ========================================================================== */
+
+.editor-compact-dialog {
+  width: 100vw;
+  max-width: none;
+  height: 100dvh;
+  max-height: none;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.editor-compact-dialog::backdrop { background: rgba(0, 0, 0, 0.6); }
+
+/* Cabeçalho */
+.editor-compact-dialog__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.4rem 0.9rem;
+  background: #1f2937;
+  color: #fff;
+  flex-shrink: 0;
+}
+.editor-compact-dialog__title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.editor-compact-dialog__header-actions {
+  display: inline-flex;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+/* Barra de ferramentas */
+.editor-compact-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.08rem;
+  padding: 0.3rem 0.6rem;
+  background: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+  flex-shrink: 0;
+  user-select: none;
+}
+.editor-compact-toolbar__btn {
+  border: 1px solid transparent;
+  background: transparent;
+  color: #374151;
+  width: 2rem;
+  height: 2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: background 0.1s, border-color 0.1s;
+  flex-shrink: 0;
+}
+.editor-compact-toolbar__btn:hover {
+  background: #e9ecef;
+  border-color: #ced4da;
+}
+.editor-compact-toolbar__btn:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 1px;
+}
+.editor-compact-toolbar__btn.active {
+  background: #dbeafe;
+  border-color: #93c5fd;
+  color: #1d4ed8;
+}
+.editor-compact-toolbar__btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+  pointer-events: none;
+}
+.editor-compact-toolbar__btn--has-dropdown {
+  width: auto;
+  padding: 0 0.35rem;
+  gap: 0.15rem;
+}
+.editor-compact-toolbar__sep {
+  width: 1px;
+  height: 1.5rem;
+  background: #ced4da;
+  margin: 0 0.3rem;
+  flex-shrink: 0;
+}
+
+/* Dropdown de títulos (H1–H6) */
+.editor-compact-dropdown {
+  position: relative;
+  display: inline-flex;
+}
+.editor-compact-dropdown__menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 2000;
+  background: #fff;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.14);
+  display: flex;
+  flex-direction: column;
+  min-width: 4.5rem;
+  overflow: hidden;
+}
+.editor-compact-dropdown__menu[hidden] { display: none; }
+.editor-compact-dropdown__item {
+  border: none;
+  background: transparent;
+  padding: 0.4rem 0.9rem;
+  text-align: left;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: #374151;
+}
+.editor-compact-dropdown__item:hover { background: #f3f4f6; }
+
+/* Shell do sub-editor — ocupa o restante da altura */
+.editor-compact-dialog__shell {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Topbar fantasma: presente no DOM para o Topbar.js encontrar seus seletores,
+   mas invisível — os controles ficam na barra compacta. */
+.editor-compact-dialog__ghost-topbar {
+  display: none !important;
+}
+
+/* Sidebars ocultas: canvas ocupa toda a largura */
+.editor-compact-dialog .editor-sidebar {
+  display: none !important;
+}
+.editor-compact-dialog .editor-canvas-wrapper {
+  flex: 1;
+}

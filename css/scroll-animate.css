@@ -1,0 +1,83 @@
+/* ===========================================================================
+   Animações on-scroll — estado inicial + transição para `.wa-in-view`.
+   ---------------------------------------------------------------------------
+   Compartilhado entre o canvas do editor e a página publicada (Django).
+   O runtime (scroll-animate.js) adiciona `wa-ready` a um ancestral e
+   `wa-in-view` ao elemento quando ele entra na viewport.
+
+   Degradação graciosa: o conteúdo SÓ é escondido sob `.wa-ready` — se o JS
+   não rodar, nada fica invisível.
+   =========================================================================== */
+
+.wa-ready [data-animate]:not([data-animate=""]) {
+  --wa-duration: 600ms;
+  --wa-delay: 0ms;
+  opacity: 0;
+  transition: opacity var(--wa-duration) ease var(--wa-delay),
+              transform var(--wa-duration) ease var(--wa-delay);
+  will-change: opacity, transform;
+}
+
+/* Estado inicial por efeito (enquanto ainda não entrou na viewport). */
+.wa-ready [data-animate="fade-up"]:not(.wa-in-view)    { transform: translateY(28px); }
+.wa-ready [data-animate="fade-down"]:not(.wa-in-view)  { transform: translateY(-28px); }
+.wa-ready [data-animate="fade-right"]:not(.wa-in-view) { transform: translateX(-28px); }
+.wa-ready [data-animate="fade-left"]:not(.wa-in-view)  { transform: translateX(28px); }
+.wa-ready [data-animate="zoom-in"]:not(.wa-in-view)    { transform: scale(0.92); }
+.wa-ready [data-animate="zoom-out"]:not(.wa-in-view)   { transform: scale(1.08); }
+
+/* Estado final — comum a todos os efeitos. */
+.wa-ready [data-animate].wa-in-view {
+  opacity: 1;
+  transform: none;
+}
+
+/* ===========================================================================
+   Parallax — `data-parallax="<factor>"` (-1..1). O runtime grava
+   `--wa-parallax-y` e o elemento se desloca verticalmente conforme o scroll.
+
+   Quando combinado com `data-animate`, o transform só vale após a entrada
+   (`.wa-in-view`) — durante a entrada vale o transform do efeito.
+   =========================================================================== */
+[data-parallax]:not([data-parallax="0"]):not([data-parallax=""]) {
+  will-change: transform;
+}
+[data-parallax]:not([data-parallax="0"]):not([data-parallax=""]):not([data-animate]) {
+  transform: translate3d(0, var(--wa-parallax-y, 0), 0);
+}
+.wa-ready [data-animate][data-parallax]:not([data-parallax="0"]):not([data-parallax=""]).wa-in-view {
+  transform: translate3d(0, var(--wa-parallax-y, 0), 0);
+}
+
+/* ===========================================================================
+   Animações scroll-linked — `data-animate` + `data-scroll-link="1"`.
+
+   Em vez de uma transição one-shot (controlada por `wa-in-view`), o efeito
+   é "esfregado" pelo scroll. O runtime grava `--wa-progress` (0..1) e o CSS
+   interpola opacity e transform. Sem transição CSS — o próprio scroll é a
+   linha do tempo.
+   =========================================================================== */
+.wa-ready [data-animate][data-scroll-link="1"]:not([data-animate=""]) {
+  --wa-progress: 0;
+  opacity: var(--wa-progress, 0);
+  transition: none !important;
+}
+.wa-ready [data-animate="fade"][data-scroll-link="1"]       { transform: none; }
+.wa-ready [data-animate="fade-up"][data-scroll-link="1"]    { transform: translateY(calc((1 - var(--wa-progress, 0)) * 28px)); }
+.wa-ready [data-animate="fade-down"][data-scroll-link="1"]  { transform: translateY(calc((1 - var(--wa-progress, 0)) * -28px)); }
+.wa-ready [data-animate="fade-right"][data-scroll-link="1"] { transform: translateX(calc((1 - var(--wa-progress, 0)) * -28px)); }
+.wa-ready [data-animate="fade-left"][data-scroll-link="1"]  { transform: translateX(calc((1 - var(--wa-progress, 0)) * 28px)); }
+.wa-ready [data-animate="zoom-in"][data-scroll-link="1"]    { transform: scale(calc(0.92 + var(--wa-progress, 0) * 0.08)); }
+.wa-ready [data-animate="zoom-out"][data-scroll-link="1"]   { transform: scale(calc(1.08 - var(--wa-progress, 0) * 0.08)); }
+
+/* Acessibilidade: sem movimento, mostra tudo no estado final sem transição. */
+@media (prefers-reduced-motion: reduce) {
+  .wa-ready [data-animate] {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  [data-parallax] {
+    transform: none !important;
+  }
+}
