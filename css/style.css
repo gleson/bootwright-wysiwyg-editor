@@ -3045,3 +3045,16 @@ body.editor-img-resize-dragging * { user-select: none !important; }
 .editor-compact-dialog .editor-canvas-wrapper {
   flex: 1;
 }
+
+/* ---- Modo completo ----
+   Revela a topbar nativa do sub-editor + as duas sidebars e oculta a barra
+   compacta. O cabeçalho do dialog (Salvar/Cancelar/alternância) permanece.
+   Regras posicionadas DEPOIS das de ocultação para vencer no source order. */
+.editor-compact-dialog--full .editor-compact-toolbar { display: none; }
+.editor-compact-dialog--full .editor-compact-dialog__ghost-topbar {
+  display: flex !important;
+}
+.editor-compact-dialog--full .editor-sidebar { display: flex !important; }
+/* Evita recursão: o botão "editor rápido" da topbar nativa abriria outro
+   compacto sobre este — sem sentido aqui. */
+.editor-compact-dialog--full .editor-topbar__btn--compact-editor { display: none; }

@@ -187,6 +187,8 @@ export const ptBR = {
   /* ---- CompactEditor (editor rápido com barra no topo) ---- */
   'compactEditor.title': 'Editor rápido',
   'compactEditor.toolbarAria': 'Barra de ferramentas',
+  'compactEditor.fullMode': 'Modo completo',
+  'compactEditor.compactMode': 'Modo compacto',
   'compactEditor.insertParagraph': 'Inserir parágrafo (¶)',
   'compactEditor.insertHeading': 'Inserir título (H1–H6)',
   'compactEditor.insertBlockquote': 'Inserir citação',

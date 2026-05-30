@@ -91,7 +91,7 @@ export class Topbar {
     // Editor rápido (CompactEditor) — abre dialog full-screen sem sidebars
     this.btnCompactEditor = el('button', {
       type: 'button',
-      class: 'btn btn-sm btn-outline-secondary',
+      class: 'btn btn-sm btn-outline-secondary editor-topbar__btn--compact-editor',
       title: t('topbar.compactEditor'),
     }, [icon('layout-text-window-reverse')]);
     this.btnCompactEditor.addEventListener('click', () => {

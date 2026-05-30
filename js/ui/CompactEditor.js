@@ -75,8 +75,15 @@ export class CompactEditor {
    *   title?: string,
    *   html?: string,
    *   tools?: string[],
+   *   allowFullMode?: boolean,
    *   onSave: (html: string) => void,
    * }} opts
+   *
+   * `allowFullMode` (default `true`): exibe um botão no cabeçalho que alterna
+   * para o "modo completo" — revela a topbar nativa do sub-editor e as duas
+   * sidebars (biblioteca de blocos + propriedades), ocultando a barra compacta.
+   * Passe `false` para travar no modo compacto (ex.: campos de comentário/
+   * anotação no frontend onde só se quer edição leve).
    */
   open(opts = {}) {
     if (this._dialog) return;
@@ -84,6 +91,7 @@ export class CompactEditor {
       title   = t('compactEditor.title'),
       html    = '',
       tools   = DEFAULT_COMPACT_TOOLS,
+      allowFullMode = true,
       onSave,
     } = opts;
 
@@ -99,9 +107,26 @@ export class CompactEditor {
       type: 'button', class: 'btn btn-sm btn-primary',
     }, [icon('check2'), ' ', t('contentEditor.saveReturn')]);
 
+    // Botão de alternância compacto ⇄ completo (opcional via allowFullMode).
+    let btnFullMode = null;
+    if (allowFullMode) {
+      btnFullMode = el('button', {
+        type: 'button', class: 'btn btn-sm btn-outline-light',
+        'aria-pressed': 'false',
+        title: t('compactEditor.fullMode'),
+        'aria-label': t('compactEditor.fullMode'),
+      }, [icon('arrows-fullscreen'), ' ',
+          el('span', { class: 'editor-compact-fullmode-label' }, t('compactEditor.fullMode'))]);
+      btnFullMode.addEventListener('click', () => this._toggleFullMode(dialog, btnFullMode));
+    }
+
+    const headerActions = [];
+    if (btnFullMode) headerActions.push(btnFullMode);
+    headerActions.push(btnCancel, btnSave);
+
     dialog.appendChild(el('header', { class: 'editor-compact-dialog__header' }, [
       el('div', { class: 'editor-compact-dialog__title' }, [icon('pencil-square'), ' ', title]),
-      el('div', { class: 'editor-compact-dialog__header-actions' }, [btnCancel, btnSave]),
+      el('div', { class: 'editor-compact-dialog__header-actions' }, headerActions),
     ]));
 
     /* ---- Barra de ferramentas ---- */
@@ -226,6 +251,26 @@ export class CompactEditor {
         }
       },
     });
+  }
+
+  /**
+   * Alterna entre modo compacto e modo completo no mesmo dialog.
+   *
+   * O sub-editor já é um `Editor` completo: a topbar nativa (device switch,
+   * undo/redo) e as sidebars (biblioteca + propriedades) só estão ocultas via
+   * CSS. O modo completo apenas revela essas regiões e oculta a barra compacta;
+   * o cabeçalho com Salvar/Cancelar permanece (é o contrato do modal).
+   */
+  _toggleFullMode(dialog, btn) {
+    const full = dialog.classList.toggle('editor-compact-dialog--full');
+    const label = full ? t('compactEditor.compactMode') : t('compactEditor.fullMode');
+    btn.setAttribute('aria-pressed', String(full));
+    btn.title = label;
+    btn.setAttribute('aria-label', label);
+    const iconEl = btn.querySelector('i');
+    if (iconEl) iconEl.className = `bi bi-${full ? 'fullscreen-exit' : 'arrows-fullscreen'}`;
+    const labelEl = btn.querySelector('.editor-compact-fullmode-label');
+    if (labelEl) labelEl.textContent = label;
   }
 
   /* ================================================================

@@ -186,6 +186,8 @@ export const en = {
   /* ---- CompactEditor (quick editor with top toolbar) ---- */
   'compactEditor.title': 'Quick Editor',
   'compactEditor.toolbarAria': 'Toolbar',
+  'compactEditor.fullMode': 'Full mode',
+  'compactEditor.compactMode': 'Compact mode',
   'compactEditor.insertParagraph': 'Insert paragraph (¶)',
   'compactEditor.insertHeading': 'Insert heading (H1–H6)',
   'compactEditor.insertBlockquote': 'Insert blockquote',
