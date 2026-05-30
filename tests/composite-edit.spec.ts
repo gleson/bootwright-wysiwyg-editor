@@ -16,6 +16,14 @@ const BASE_URL = process.env.BASE_URL ?? 'http://localhost:5173';
  */
 test.describe('Blocos compostos — edição no canvas', () => {
   test.beforeEach(async ({ page }) => {
+    // O teste de XSS injeta `<img src=x onerror="alert(1)">` no DOM vivo; a
+    // falha de carregamento dispara um `alert` ASSÍNCRONO que, sem tratamento,
+    // surge durante o teardown ou o próximo teste e deixa a suíte instável
+    // (~1/3 de falhas). O teste valida a sanitização NO COMMIT, não a execução
+    // no DOM — então neutralizamos o diálogo: stub do alert + dismiss de
+    // qualquer diálogo remanescente. Determinístico, sem mascarar regressão.
+    page.on('dialog', (d) => d.dismiss().catch(() => {}));
+    await page.addInitScript(() => { (window as any).alert = () => {}; });
     await page.goto(BASE_URL);
     await page.waitForFunction(
       () => Boolean((window as any).__editor?.registry),

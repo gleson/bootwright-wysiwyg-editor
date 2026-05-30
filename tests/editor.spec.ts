@@ -8,7 +8,7 @@ test.describe('Editor WYSIWYG — smoke', () => {
   });
 
   test('a casca do editor é montada com topbar, canvas e sidebars', async ({ page }) => {
-    await expect(page).toHaveTitle(/Editor WYSIWYG/);
+    await expect(page).toHaveTitle(/Bootwright/);
 
     const root = page.locator('#editor-root');
     await expect(root).toBeVisible();

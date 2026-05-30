@@ -2,9 +2,13 @@
  * htmlImport — converte uma string HTML em um array de descritores de bloco
  * prontos para a árvore do editor.
  *
- * Cada descritor tem o formato `{ type, props, children? }` — pode ser
- * passado direto para o State.createNode / AddNodeCommand. `classes` e `attrs`
- * são herdados do schema do bloco na hora de inserir (ver Editor.importBlocks).
+ * Cada descritor tem o formato `{ type, props, classes?, attrs?, children? }` —
+ * pode ser passado direto para o State.createNode / AddNodeCommand. Quando o
+ * elemento de origem traz `class`/`style`/`id`/`data-*`/`aria-*`, esses valores
+ * são extraídos para `classes`/`attrs` e **vencem** os defaults do schema na
+ * hora de inserir (ver Editor._buildImportNode) — é o que permite o round-trip
+ * "editar HTML → reimportar" preservar o que o usuário escreveu. Quando o
+ * elemento não traz nada, `classes`/`attrs` ficam ausentes e o schema preenche.
  *
  * Mapeamento (v1):
  *   h1..h6     → heading { level, text }
@@ -24,6 +28,34 @@ import { RICH_TEXT_PROFILE } from '../blocks/built-in/Paragraph.js';
 const CONTAINER_TAGS = new Set([
   'section', 'div', 'article', 'main', 'header', 'footer', 'aside', 'nav',
 ]);
+
+/**
+ * Atributos de nível de bloco que preservamos ao importar (whitelist). `class`
+ * vira `classes`; o resto entra em `attrs`. Atributos de evento (`on*`) e
+ * qualquer coisa fora desta lista são descartados — `attrs` é aplicado pelo
+ * Renderer via setAttribute sem sanitização, então mantemos o conjunto seguro.
+ * `style` é o caso principal (CSS inline editado à mão no modo HTML).
+ */
+const PRESERVED_ATTRS = new Set([
+  'style', 'id', 'title', 'role', 'lang', 'dir', 'tabindex',
+]);
+
+/** Extrai `{ classes?, attrs? }` de um elemento, omitindo chaves vazias. */
+function extractCommon(el) {
+  const out = {};
+  const classes = Array.from(el.classList);
+  if (classes.length) out.classes = classes;
+
+  const attrs = {};
+  for (const { name, value } of el.attributes) {
+    const lname = name.toLowerCase();
+    if (PRESERVED_ATTRS.has(lname) || lname.startsWith('data-') || lname.startsWith('aria-')) {
+      attrs[lname] = value;
+    }
+  }
+  if (Object.keys(attrs).length) out.attrs = attrs;
+  return out;
+}
 
 export function htmlToBlocks(html, sanitizer) {
   if (!html || !html.trim()) return [];
@@ -49,13 +81,13 @@ function mapElement(el, sanitizer) {
   if (/^h[1-6]$/.test(tag)) {
     const text = el.textContent.trim();
     if (!text) return null;
-    return { type: 'heading', props: { level: Number(tag[1]), text } };
+    return { type: 'heading', props: { level: Number(tag[1]), text }, ...extractCommon(el) };
   }
 
   if (tag === 'p') {
     const text = cleanInline(el, sanitizer);
     if (!text.trim()) return null;
-    return { type: 'paragraph', props: { text } };
+    return { type: 'paragraph', props: { text }, ...extractCommon(el) };
   }
 
   if (tag === 'blockquote') {
@@ -65,7 +97,7 @@ function mapElement(el, sanitizer) {
     if (footer) footer.remove();
     const text = clone.textContent.trim();
     if (!text && !source) return null;
-    return { type: 'blockquote', props: { text, source } };
+    return { type: 'blockquote', props: { text, source }, ...extractCommon(el) };
   }
 
   if (tag === 'ul' || tag === 'ol') {
@@ -73,15 +105,15 @@ function mapElement(el, sanitizer) {
       .map((li) => li.textContent.trim().replace(/\s+/g, ' '))
       .filter(Boolean);
     if (!items.length) return null;
-    return { type: 'list', props: { ordered: tag === 'ol', items: items.join('\n') } };
+    return { type: 'list', props: { ordered: tag === 'ol', items: items.join('\n') }, ...extractCommon(el) };
   }
 
-  if (tag === 'hr') return { type: 'divider', props: {} };
+  if (tag === 'hr') return { type: 'divider', props: {}, ...extractCommon(el) };
 
   if (tag === 'img') {
     const src = el.getAttribute('src') || '';
     if (!src) return null;
-    return { type: 'image', props: { src, alt: el.getAttribute('alt') || '' } };
+    return { type: 'image', props: { src, alt: el.getAttribute('alt') || '' }, ...extractCommon(el) };
   }
 
   if (tag === 'video') {
@@ -95,7 +127,7 @@ function mapElement(el, sanitizer) {
       autoplay: el.hasAttribute('autoplay'),
       muted: el.hasAttribute('muted'),
       playsinline: el.hasAttribute('playsinline'),
-    } };
+    }, ...extractCommon(el) };
   }
 
   if (tag === 'iframe') {
@@ -115,11 +147,11 @@ function mapElement(el, sanitizer) {
       if (out) childBlocks.push(...(Array.isArray(out) ? out : [out]));
     }
     if (childBlocks.length) {
-      return { type: 'section', children: childBlocks };
+      return { type: 'section', children: childBlocks, ...extractCommon(el) };
     }
     // Container sem filhos-elemento mas com texto → parágrafo simples.
     if (el.textContent.trim()) {
-      return { type: 'paragraph', props: { text: cleanInline(el, sanitizer) } };
+      return { type: 'paragraph', props: { text: cleanInline(el, sanitizer) }, ...extractCommon(el) };
     }
     return null;
   }

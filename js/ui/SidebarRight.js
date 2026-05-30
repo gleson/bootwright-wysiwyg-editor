@@ -232,10 +232,30 @@ export class SidebarRight {
           icon('info-circle'), ' ' + t('inspector.noControls', { tab: tabLabel(tab) }),
         ]));
       } else {
-        for (const schema of grouped[tab]) {
-          const ctrl = this.factory.create(schema, node);
-          this.controls.push(ctrl);
-          panel.appendChild(ctrl.field);
+        const items = grouped[tab];
+        let i = 0;
+        while (i < items.length) {
+          const schema = items[i];
+          // Controles consecutivos com o mesmo `section.id` são agrupados num
+          // <details> recolhível (declutter da aba Avançado).
+          if (schema.section) {
+            const sec = schema.section;
+            const details = el('details', { class: 'editor-inspector__section' });
+            details.appendChild(el('summary', { class: 'editor-inspector__section-summary' },
+              [icon('braces-asterisk'), ' ', sec.label]));
+            while (i < items.length && items[i].section?.id === sec.id) {
+              const ctrl = this.factory.create(items[i], node);
+              this.controls.push(ctrl);
+              details.appendChild(ctrl.field);
+              i++;
+            }
+            panel.appendChild(details);
+          } else {
+            const ctrl = this.factory.create(schema, node);
+            this.controls.push(ctrl);
+            panel.appendChild(ctrl.field);
+            i++;
+          }
         }
       }
       panels.push(panel);

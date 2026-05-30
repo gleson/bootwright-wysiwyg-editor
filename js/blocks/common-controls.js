@@ -124,16 +124,28 @@ export function animationControls() {
   ];
 }
 
-/** ID HTML + classes brutas + animação on-scroll (aba Avançado). */
+/**
+ * Aba Avançado: adicionar classe (helper) + uma seção recolhível com a edição
+ * "crua" do HTML (estilo inline, ID e classes) — agrupada para não poluir o
+ * painel — e a animação on-scroll.
+ *
+ * Os controles que compartilham o mesmo `section.id` (consecutivos) são
+ * renderizados dentro de um <details> pela SidebarRight.
+ */
 export function advancedControls() {
+  const rawHtml = { id: 'rawhtml', label: 'Estilo inline & atributos' };
   return [
-    { tab: 'advanced', type: 'text', label: 'ID HTML',
-      bind: { kind: 'attr', key: 'id' } },
     { tab: 'advanced', type: 'class-picker',
       label: 'Adicionar classe personalizada',
       help: 'Classes detectadas no CSS personalizado (Personalização → CSS).' },
+    { tab: 'advanced', type: 'textarea', label: 'Estilo inline (CSS)',
+      help: 'CSS aplicado direto no atributo style do elemento. '
+          + 'Ex.: color: #b30000; margin-top: 8px',
+      bind: { kind: 'attr', key: 'style' }, section: rawHtml },
+    { tab: 'advanced', type: 'text', label: 'ID HTML',
+      bind: { kind: 'attr', key: 'id' }, section: rawHtml },
     { tab: 'advanced', type: 'textarea', label: 'Classes (todas)',
-      bind: { kind: 'classes' } },
+      bind: { kind: 'classes' }, section: rawHtml },
     ...animationControls(),
   ];
 }

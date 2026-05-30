@@ -15,6 +15,7 @@ import {
 import { generateId } from '../utils/id.js';
 import { t } from '../i18n/index.js';
 import { htmlToBlocks } from '../utils/htmlImport.js';
+import { formatHTML } from '../utils/htmlFormat.js';
 import { markdownToHtml } from '../utils/markdownImport.js';
 import { BlockRegistry } from '../blocks/BlockRegistry.js';
 import { builtInBlocks } from '../blocks/built-in/index.js';
@@ -43,6 +44,7 @@ import { MarkdownShortcuts } from '../ui/MarkdownShortcuts.js';
 import { InlineMarkdown } from '../ui/InlineMarkdown.js';
 import { FindReplace } from '../ui/FindReplace.js';
 import { ImportDialog } from '../ui/ImportDialog.js';
+import { HtmlSourceDialog } from '../ui/HtmlSourceDialog.js';
 import { A11yAudit } from '../ui/A11yAudit.js';
 import { IconPicker } from '../ui/IconPicker.js';
 import { ImageEditor } from '../ui/ImageEditor.js';
@@ -61,6 +63,35 @@ export const VERSION = '1.1.0';
 
 /** Versão do schema da árvore JSON salva no localStorage / banco. */
 export const SCHEMA_VERSION = 1;
+
+/**
+ * LCS sobre duas sequências de chaves (igualdade por `===`). Devolve um Map
+ * `novoÍndice → velhoÍndice` representando o emparelhamento crescente máximo —
+ * cada índice de cada lado aparece no máximo uma vez. Usado pela reconciliação
+ * do modo HTML (ver Editor._reconcileReplaceHtml) para casar blocos inalterados
+ * por posição + igualdade textual.
+ */
+function lcsPairs(a, b) {
+  const n = a.length;
+  const m = b.length;
+  const dp = Array.from({ length: n + 1 }, () => new Int32Array(m + 1));
+  for (let i = n - 1; i >= 0; i--) {
+    for (let j = m - 1; j >= 0; j--) {
+      dp[i][j] = a[i] === b[j]
+        ? dp[i + 1][j + 1] + 1
+        : Math.max(dp[i + 1][j], dp[i][j + 1]);
+    }
+  }
+  const pairs = new Map();
+  let i = 0;
+  let j = 0;
+  while (i < n && j < m) {
+    if (a[i] === b[j]) { pairs.set(j, i); i++; j++; }
+    else if (dp[i + 1][j] >= dp[i][j + 1]) i++;
+    else j++;
+  }
+  return pairs;
+}
 
 /** Conjunto de tipos de bloco com sintaxe Django no HTML exportado. */
 const DJANGO_ONLY_BLOCK_TYPES = new Set([
@@ -370,6 +401,7 @@ export class Editor {
       // ExportDialog é instanciado primeiro (sem mount) — Topbar referencia.
       exportDialog: new ExportDialog(this),
       importDialog: new ImportDialog(this),
+      htmlSourceDialog: new HtmlSourceDialog(this),
       a11yAudit: new A11yAudit(this),
       iconPicker: new IconPicker(this),
       // ImageEditor — modal de edição da imagem (alinhamento/transform/ajustes/
@@ -846,9 +878,17 @@ export class Editor {
     return this.importContent({ format: 'html', source: html, mode });
   }
 
-  importContent({ format, source, mode = 'append' }) {
+  importContent({ format, source, mode = 'append', diff = false }) {
     let html = source;
     if (format === 'markdown') html = markdownToHtml(source);
+
+    // Reconciliação (modo HTML "editar e aplicar"): em replace, casa os blocos
+    // inalterados com os nós atuais por posição + igualdade textual, em vez de
+    // reconstruir tudo (que rebaixaria blocos compostos ao fallback `html`).
+    if (mode === 'replace' && diff) {
+      return this._reconcileReplaceHtml(html);
+    }
+
     const descriptors = htmlToBlocks(html, this.sanitizer);
     if (!descriptors.length) return { count: 0, ids: [] };
 
@@ -891,6 +931,55 @@ export class Editor {
         .map((c) => this._buildImportNode(c))
         .filter(Boolean),
     };
+  }
+
+  /**
+   * Reconciliação HTML→árvore para o modo "editar HTML" (replace com diff).
+   *
+   * Em vez de reconstruir tudo — o que rebaixaria blocos compostos (Tabs,
+   * Acordeão, Carousel) ao fallback `html` e perderia seus ids/props —,
+   * comparamos os elementos de topo do HTML editado contra o HTML exportado
+   * dos nós atuais, por POSIÇÃO + IGUALDADE TEXTUAL (LCS sobre a forma
+   * canônica produzida por formatHTML). Blocos inalterados reaproveitam o nó
+   * original (mesmo id, subtree e fidelidade); blocos novos ou alterados são
+   * reimportados pelo importer lossless (htmlToBlocks + _buildImportNode).
+   */
+  _reconcileReplaceHtml(html) {
+    const oldNodes = this.getRoot().children;
+    const oldKeys = oldNodes.map((n) => this._nodeCanonicalHtml(n));
+
+    const doc = new DOMParser().parseFromString(String(html ?? ''), 'text/html');
+    const newEls = Array.from(doc.body.children);
+    const newKeys = newEls.map((el) => formatHTML(el.outerHTML));
+
+    const matches = lcsPairs(oldKeys, newKeys); // novoÍndice → velhoÍndice
+
+    const children = [];
+    newEls.forEach((el, j) => {
+      if (matches.has(j)) {
+        // Inalterado — reaproveita o nó original (preserva id/estrutura).
+        children.push(JSON.parse(JSON.stringify(oldNodes[matches.get(j)])));
+        return;
+      }
+      // Novo/alterado — reimporta via importer lossless.
+      const descriptors = htmlToBlocks(el.outerHTML, this.sanitizer);
+      for (const d of descriptors) {
+        const node = this._buildImportNode(d);
+        if (node) children.push(node);
+      }
+    });
+
+    this.loadJSON({
+      type: 'root', props: this.getRoot().props, classes: [], attrs: {}, children,
+    });
+    return { count: children.length, ids: this.getRoot().children.map((c) => c.id) };
+  }
+
+  /** Forma canônica (formatHTML) do HTML limpo exportado de um nó de topo. */
+  _nodeCanonicalHtml(node) {
+    const el = this._nodeToHtml(node);
+    this._stripEditorAttrs(el);
+    return formatHTML(el.outerHTML);
   }
 
   /**

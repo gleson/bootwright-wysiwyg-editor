@@ -174,6 +174,15 @@ export class Topbar {
     this.btnExportHTML.addEventListener('click', () => this.editor.ui.exportDialog?.showHTML());
     this.actions.insertBefore(this.btnExportHTML, this.btnSave);
 
+    // Editar código-fonte HTML (round-trip: edita o HTML e reconstrói os blocos)
+    this.btnHtmlSource = el('button', {
+      type: 'button',
+      class: 'btn btn-sm btn-outline-secondary',
+      title: t('topbar.htmlSource'),
+    }, [icon('code-slash')]);
+    this.btnHtmlSource.addEventListener('click', () => this.editor.ui.htmlSourceDialog?.show());
+    this.actions.insertBefore(this.btnHtmlSource, this.btnSave);
+
     // Exportar arquivo HTML standalone (completo, com CSS via CDN)
     this.btnExportStandalone = el('button', {
       type: 'button',

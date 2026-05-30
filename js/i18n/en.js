@@ -20,6 +20,7 @@ export const en = {
   'topbar.seo': 'Page SEO (meta tags, Open Graph)',
   'topbar.exportJSON': 'Export JSON',
   'topbar.exportHTML': 'Export HTML',
+  'topbar.htmlSource': 'Edit HTML source',
   'topbar.language': 'Language',
 
   /* ---- Left sidebar ---- */
@@ -185,9 +186,13 @@ export const en = {
 
   /* ---- CompactEditor (quick editor with top toolbar) ---- */
   'compactEditor.title': 'Quick Editor',
+  'compactEditor.fullTitle': 'Full Editor',
   'compactEditor.toolbarAria': 'Toolbar',
   'compactEditor.fullMode': 'Full mode',
   'compactEditor.compactMode': 'Compact mode',
+  'compactEditor.htmlMode': 'HTML',
+  'compactEditor.visualMode': 'Visual',
+  'compactEditor.htmlHint': 'Edit the HTML directly. On apply, blocks are rebuilt from it — class, style, id and data-*/aria-* are preserved.',
   'compactEditor.insertParagraph': 'Insert paragraph (¶)',
   'compactEditor.insertHeading': 'Insert heading (H1–H6)',
   'compactEditor.insertBlockquote': 'Insert blockquote',
@@ -206,6 +211,14 @@ export const en = {
   'compactEditor.alignCenter': 'Center',
   'compactEditor.alignRight': 'Align right',
   'topbar.compactEditor': 'Quick editor — open compact mode with top toolbar',
+
+  /* ---- HTML source editing ---- */
+  'htmlSource.title': 'Edit HTML source',
+  'htmlSource.hint': 'Edit the document HTML directly. On apply, the blocks are rebuilt from it (class, style, id and data-*/aria-* are preserved; unsupported structures become HTML embeds).',
+  'htmlSource.apply': 'Apply',
+  'htmlSource.reindent': 'Reindent',
+  'htmlSource.applied': 'HTML applied.',
+  'htmlSource.error': 'Failed to parse the HTML.',
 
   /* ---- ContentEditor (mini-editor for composite panels) ---- */
   'contentEditor.title': 'Edit content — {name}',

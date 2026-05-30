@@ -21,6 +21,7 @@ export const ptBR = {
   'topbar.seo': 'SEO da página (meta tags, Open Graph)',
   'topbar.exportJSON': 'Exportar JSON',
   'topbar.exportHTML': 'Exportar HTML',
+  'topbar.htmlSource': 'Editar código-fonte HTML',
   'topbar.language': 'Idioma',
 
   /* ---- Sidebar esquerda ---- */
@@ -186,9 +187,13 @@ export const ptBR = {
 
   /* ---- CompactEditor (editor rápido com barra no topo) ---- */
   'compactEditor.title': 'Editor rápido',
+  'compactEditor.fullTitle': 'Editor completo',
   'compactEditor.toolbarAria': 'Barra de ferramentas',
   'compactEditor.fullMode': 'Modo completo',
   'compactEditor.compactMode': 'Modo compacto',
+  'compactEditor.htmlMode': 'HTML',
+  'compactEditor.visualMode': 'Visual',
+  'compactEditor.htmlHint': 'Edite o HTML diretamente. Ao aplicar, os blocos são reconstruídos a partir dele — class, style, id e data-*/aria-* são preservados.',
   'compactEditor.insertParagraph': 'Inserir parágrafo (¶)',
   'compactEditor.insertHeading': 'Inserir título (H1–H6)',
   'compactEditor.insertBlockquote': 'Inserir citação',
@@ -207,6 +212,14 @@ export const ptBR = {
   'compactEditor.alignCenter': 'Centralizar',
   'compactEditor.alignRight': 'Alinhar à direita',
   'topbar.compactEditor': 'Editor rápido — abre modo compacto com barra de ferramentas',
+
+  /* ---- Edição de código-fonte HTML ---- */
+  'htmlSource.title': 'Editar código-fonte HTML',
+  'htmlSource.hint': 'Edite o HTML do documento diretamente. Ao aplicar, os blocos são reconstruídos a partir dele (class, style, id e data-*/aria-* são preservados; estruturas não suportadas viram blocos HTML).',
+  'htmlSource.apply': 'Aplicar',
+  'htmlSource.reindent': 'Reindentar',
+  'htmlSource.applied': 'HTML aplicado.',
+  'htmlSource.error': 'Falha ao interpretar o HTML.',
 
   /* ---- ContentEditor (mini-editor de painel) ---- */
   'contentEditor.title': 'Editar conteúdo — {name}',

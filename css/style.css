@@ -3055,6 +3055,84 @@ body.editor-img-resize-dragging * { user-select: none !important; }
   display: flex !important;
 }
 .editor-compact-dialog--full .editor-sidebar { display: flex !important; }
+/* Mas respeita o botão "esconder painéis" da topbar nativa (Ctrl+\): quando o
+   shell ganha .editor-shell--no-sidebars, as sidebars somem mesmo em modo
+   completo. Sem isto, o !important acima vence o toggle e o botão "não faz
+   nada". Posicionado depois e mais específico para vencer no source order. */
+.editor-compact-dialog--full .editor-shell--no-sidebars .editor-sidebar {
+  display: none !important;
+}
 /* Evita recursão: o botão "editor rápido" da topbar nativa abriria outro
    compacto sobre este — sem sentido aqui. */
 .editor-compact-dialog--full .editor-topbar__btn--compact-editor { display: none; }
+
+/* Cabeçalho do dialog acompanha o modo: no completo vira tema claro (igual à
+   topbar do editor), em vez de manter o visual escuro do modo compacto. */
+.editor-compact-dialog--full .editor-compact-dialog__header {
+  background: var(--editor-surface);
+  color: var(--editor-text, #1f2937);
+  border-bottom: 1px solid var(--editor-border);
+}
+/* O botão de alternância usa btn-outline-light (legível no escuro). No tema
+   claro precisa de cor/borda visíveis. */
+.editor-compact-dialog--full .editor-compact-dialog__header .btn-outline-light {
+  color: #374151;
+  border-color: #ced4da;
+}
+.editor-compact-dialog--full .editor-compact-dialog__header .btn-outline-light:hover {
+  color: #111827;
+  background: #e9ecef;
+  border-color: #adb5bd;
+}
+
+/* ---- Modo código-fonte HTML (CompactEditor) ----
+   Oculta a barra compacta e o shell do sub-editor; mostra o textarea de código
+   ocupando todo o espaço. Independente do modo completo. */
+.editor-compact-dialog__code { display: none; }
+.editor-compact-dialog--code .editor-compact-toolbar,
+.editor-compact-dialog--code .editor-compact-dialog__shell { display: none !important; }
+.editor-compact-dialog--code .editor-compact-dialog__code {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 0.75rem 1rem 1rem;
+}
+.editor-compact-dialog__code-hint { color: #6b7280; }
+.editor-compact-dialog__code-ta {
+  flex: 1 1 auto;
+  min-height: 0;
+  resize: none;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  white-space: pre;
+  tab-size: 2;
+}
+
+/* Diálogo global de código-fonte HTML (reusa o visual do export dialog). */
+.editor-html-source-dialog__hint { margin-bottom: 0.5rem; }
+.editor-html-source-dialog__ta { white-space: pre; tab-size: 2; }
+
+/* ---- Seção recolhível na aba Avançado do inspector ---- */
+.editor-inspector__section {
+  border: 1px solid var(--editor-border, #e5e7eb);
+  border-radius: 6px;
+  margin: 0.5rem 0;
+  background: rgba(0, 0, 0, 0.015);
+}
+.editor-inspector__section-summary {
+  cursor: pointer;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #374151;
+  user-select: none;
+  list-style: none;
+}
+.editor-inspector__section-summary::-webkit-details-marker { display: none; }
+.editor-inspector__section[open] .editor-inspector__section-summary {
+  border-bottom: 1px solid var(--editor-border, #e5e7eb);
+  margin-bottom: 0.5rem;
+}
+.editor-inspector__section > .editor-control { padding: 0 0.6rem; }
+.editor-inspector__section > .editor-control:last-child { padding-bottom: 0.6rem; }

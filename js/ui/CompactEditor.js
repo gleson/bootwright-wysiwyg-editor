@@ -1,6 +1,7 @@
 import { el, icon } from '../utils/dom.js';
 import { Editor } from '../core/Editor.js';
 import { htmlToBlocks } from '../utils/htmlImport.js';
+import { formatHTML } from '../utils/htmlFormat.js';
 import { resolveInsertTarget } from '../utils/insertTarget.js';
 import { t } from '../i18n/index.js';
 
@@ -66,6 +67,7 @@ export class CompactEditor {
     this.editor = editor;
     this._dialog = null;
     this._inlineEditEl = null;
+    this._codeMode = false;
   }
 
   /**
@@ -76,6 +78,7 @@ export class CompactEditor {
    *   html?: string,
    *   tools?: string[],
    *   allowFullMode?: boolean,
+   *   allowHtmlMode?: boolean,
    *   onSave: (html: string) => void,
    * }} opts
    *
@@ -84,6 +87,10 @@ export class CompactEditor {
    * sidebars (biblioteca de blocos + propriedades), ocultando a barra compacta.
    * Passe `false` para travar no modo compacto (ex.: campos de comentário/
    * anotação no frontend onde só se quer edição leve).
+   *
+   * `allowHtmlMode` (default `true`): exibe o botão que alterna para o editor de
+   * código-fonte HTML. Passe `false` em campos de edição leve (comentários),
+   * onde editar HTML cru não faz sentido.
    */
   open(opts = {}) {
     if (this._dialog) return;
@@ -92,6 +99,7 @@ export class CompactEditor {
       html    = '',
       tools   = DEFAULT_COMPACT_TOOLS,
       allowFullMode = true,
+      allowHtmlMode = true,
       onSave,
     } = opts;
 
@@ -107,6 +115,18 @@ export class CompactEditor {
       type: 'button', class: 'btn btn-sm btn-primary',
     }, [icon('check2'), ' ', t('contentEditor.saveReturn')]);
 
+    // Botão de alternância Visual ⇄ HTML (código-fonte). Opcional via allowHtmlMode.
+    let btnCode = null;
+    if (allowHtmlMode) {
+      btnCode = el('button', {
+        type: 'button', class: 'btn btn-sm btn-outline-light',
+        'aria-pressed': 'false',
+        title: t('compactEditor.htmlMode'),
+        'aria-label': t('compactEditor.htmlMode'),
+      }, [icon('code-slash'), ' ',
+          el('span', { class: 'editor-compact-codemode-label' }, t('compactEditor.htmlMode'))]);
+    }
+
     // Botão de alternância compacto ⇄ completo (opcional via allowFullMode).
     let btnFullMode = null;
     if (allowFullMode) {
@@ -121,11 +141,21 @@ export class CompactEditor {
     }
 
     const headerActions = [];
+    if (btnCode) headerActions.push(btnCode);
     if (btnFullMode) headerActions.push(btnFullMode);
     headerActions.push(btnCancel, btnSave);
 
+    // O texto do título vive num span próprio para ser trocado ao alternar de
+    // modo (compacto ⇄ completo). Os dois rótulos ficam no dataset: no modo
+    // completo mostramos o título original do editor (o brand da topbar do
+    // editor pai), não um rótulo genérico.
+    const titleText = el('span', {
+      class: 'editor-compact-dialog__title-text',
+      dataset: { compactTitle: title, fullTitle: this._resolveEditorTitle() },
+    }, title);
+
     dialog.appendChild(el('header', { class: 'editor-compact-dialog__header' }, [
-      el('div', { class: 'editor-compact-dialog__title' }, [icon('pencil-square'), ' ', title]),
+      el('div', { class: 'editor-compact-dialog__title' }, [icon('pencil-square'), ' ', titleText]),
       el('div', { class: 'editor-compact-dialog__header-actions' }, headerActions),
     ]));
 
@@ -173,6 +203,21 @@ export class CompactEditor {
     ]);
 
     dialog.appendChild(shell);
+
+    /* ---- Painel de código-fonte HTML (oculto até alternar) ---- */
+    const codeTa = el('textarea', {
+      class: 'form-control font-monospace editor-compact-dialog__code-ta',
+      spellcheck: 'false', autocapitalize: 'off', autocomplete: 'off',
+    });
+    const codePanel = el('div', {
+      class: 'editor-compact-dialog__code',
+    }, [
+      el('p', { class: 'editor-compact-dialog__code-hint small mb-2' },
+        t('compactEditor.htmlHint')),
+      codeTa,
+    ]);
+    dialog.appendChild(codePanel);
+
     document.body.appendChild(dialog);
 
     /* ---- Sub-editor ---- */
@@ -200,6 +245,42 @@ export class CompactEditor {
 
     this._wireToolbar(toolbar, subEd);
 
+    /* ---- Alternância Visual ⇄ código-fonte HTML ----
+       Aplica o HTML editado de volta ao sub-editor via reconciliação (Fase 2):
+       blocos inalterados reaproveitam o nó original (preserva compostos), só os
+       alterados são reimportados. Retorna false em caso de erro de parse. */
+    this._codeMode = false;
+    const applyCodeToEditor = () => {
+      try {
+        subEd.importContent({ format: 'html', source: codeTa.value, mode: 'replace', diff: true });
+        return true;
+      } catch (err) {
+        console.error('[CompactEditor] aplicar HTML editado falhou:', err);
+        this.editor?.notify?.toast?.(t('htmlSource.error'), 'danger');
+        return false;
+      }
+    };
+    const toggleCode = () => {
+      const goingToCode = !this._codeMode;
+      if (goingToCode) {
+        codeTa.value = formatHTML(subEd.exportHTML());
+      } else if (!applyCodeToEditor()) {
+        return; // mantém no modo código se o parse falhar
+      }
+      this._codeMode = goingToCode;
+      dialog.classList.toggle('editor-compact-dialog--code', goingToCode);
+      const label = goingToCode ? t('compactEditor.visualMode') : t('compactEditor.htmlMode');
+      btnCode.setAttribute('aria-pressed', String(goingToCode));
+      btnCode.title = label;
+      btnCode.setAttribute('aria-label', label);
+      const iconEl = btnCode.querySelector('i');
+      if (iconEl) iconEl.className = `bi bi-${goingToCode ? 'easel' : 'code-slash'}`;
+      const labelEl = btnCode.querySelector('.editor-compact-codemode-label');
+      if (labelEl) labelEl.textContent = label;
+      if (goingToCode) codeTa.focus();
+    };
+    if (btnCode) btnCode.addEventListener('click', toggleCode);
+
     /* ---- Bloqueia atalhos globais do editor pai enquanto aberto ---- */
     const trapShortcuts = (e) => {
       const blockKeys = new Set(['z', 'y', 's', 'k', 'f', '/']);
@@ -212,6 +293,9 @@ export class CompactEditor {
     /* ---- Salvar / fechar ---- */
     const close = (commit) => {
       if (commit) {
+        // Se está no modo código, aplica o HTML editado ao sub-editor antes de
+        // exportar (senão as edições no textarea seriam ignoradas).
+        if (this._codeMode && !applyCodeToEditor()) return;
         try {
           const out = subEd.exportHTML();
           onSave?.(out);
@@ -223,6 +307,7 @@ export class CompactEditor {
       }
       document.removeEventListener('keydown', trapShortcuts, true);
       this._inlineEditEl = null;
+      this._codeMode = false;
       dialog.close();
     };
 
@@ -261,6 +346,17 @@ export class CompactEditor {
    * CSS. O modo completo apenas revela essas regiões e oculta a barra compacta;
    * o cabeçalho com Salvar/Cancelar permanece (é o contrato do modal).
    */
+  /**
+   * Título a exibir no modo completo: o "nome original" do editor — o brand da
+   * topbar do editor pai (ex.: "Bootwright WYSIWYG Editor"). Cai para
+   * `document.title` e, por fim, para a string genérica de modo completo.
+   */
+  _resolveEditorTitle() {
+    const brand = this.editor?.root?.querySelector?.('.editor-topbar__brand');
+    const fromBrand = brand?.textContent?.replace(/\s+/g, ' ').trim();
+    return fromBrand || document.title?.trim() || t('compactEditor.fullTitle');
+  }
+
   _toggleFullMode(dialog, btn) {
     const full = dialog.classList.toggle('editor-compact-dialog--full');
     const label = full ? t('compactEditor.compactMode') : t('compactEditor.fullMode');
@@ -271,6 +367,14 @@ export class CompactEditor {
     if (iconEl) iconEl.className = `bi bi-${full ? 'fullscreen-exit' : 'arrows-fullscreen'}`;
     const labelEl = btn.querySelector('.editor-compact-fullmode-label');
     if (labelEl) labelEl.textContent = label;
+
+    // O cabeçalho passa a refletir o modo: título "Editor completo" e tema claro
+    // (estilo do CSS via .editor-compact-dialog--full) — em vez de manter o
+    // visual escuro "Editor rápido" no modo completo.
+    const titleText = dialog.querySelector('.editor-compact-dialog__title-text');
+    if (titleText) {
+      titleText.textContent = full ? titleText.dataset.fullTitle : titleText.dataset.compactTitle;
+    }
   }
 
   /* ================================================================
