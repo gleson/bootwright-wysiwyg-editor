@@ -1,5 +1,6 @@
 import { Block } from '../Block.js';
-import { spacingControls, advancedControls } from '../common-controls.js';
+import { spacingControls, advancedControls,
+  objectFitControl, sizingControls } from '../common-controls.js';
 
 /**
  * Detecta URLs de YouTube/Vimeo e devolve a URL "embed" correspondente.
@@ -105,6 +106,8 @@ export class Video extends Block {
         toggleLabel: 'Não abrir em fullscreen no iOS',
         bind: { kind: 'prop', key: 'playsinline' } },
 
+      ...objectFitControl(),
+      ...sizingControls(),
       ...spacingControls(),
       ...advancedControls(),
     ];

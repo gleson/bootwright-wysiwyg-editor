@@ -81,6 +81,260 @@ export function displayControls() {
 }
 
 /**
+ * Bordas (presença/lado), cor da borda, espessura e cantos arredondados —
+ * utilitários do Bootstrap 5.3. Cada grupo é independente, então combinam
+ * livremente (ex.: `border border-primary border-2 rounded-3`).
+ *
+ * Observação: cor e espessura só ficam visíveis com uma borda ativa; deixe
+ * "Borda" em "Todos os lados" (ou um lado) para vê-las.
+ */
+export function borderControls() {
+  return [
+    { tab: 'style', type: 'select', label: 'Borda',
+      options: [
+        { value: '',              label: '— padrão —' },
+        { value: 'border',        label: 'Todos os lados' },
+        { value: 'border-top',    label: 'Superior' },
+        { value: 'border-end',    label: 'Direita' },
+        { value: 'border-bottom', label: 'Inferior' },
+        { value: 'border-start',  label: 'Esquerda' },
+        { value: 'border-0',      label: 'Sem borda (forçar)' },
+      ],
+      bind: { kind: 'classGroup',
+        group: ['border', 'border-top', 'border-end', 'border-bottom',
+                'border-start', 'border-0'] } },
+    { tab: 'style', type: 'select', label: 'Cor da borda',
+      options: [
+        { value: '',                 label: '— padrão —' },
+        { value: 'border-primary',   label: 'Primária' },
+        { value: 'border-secondary', label: 'Secundária' },
+        { value: 'border-success',   label: 'Sucesso' },
+        { value: 'border-danger',    label: 'Perigo' },
+        { value: 'border-warning',   label: 'Aviso' },
+        { value: 'border-info',      label: 'Info' },
+        { value: 'border-light',     label: 'Clara' },
+        { value: 'border-dark',      label: 'Escura' },
+        { value: 'border-white',     label: 'Branca' },
+      ],
+      bind: { kind: 'classGroup',
+        group: ['border-primary', 'border-secondary', 'border-success',
+                'border-danger', 'border-warning', 'border-info',
+                'border-light', 'border-dark', 'border-white'] } },
+    { tab: 'style', type: 'select', label: 'Espessura da borda',
+      options: [
+        { value: '',         label: '— padrão (1px) —' },
+        { value: 'border-1', label: '1' },
+        { value: 'border-2', label: '2' },
+        { value: 'border-3', label: '3' },
+        { value: 'border-4', label: '4' },
+        { value: 'border-5', label: '5' },
+      ],
+      bind: { kind: 'classGroup',
+        group: ['border-1', 'border-2', 'border-3', 'border-4', 'border-5'] } },
+    { tab: 'style', type: 'select', label: 'Cantos arredondados',
+      options: [
+        { value: '',               label: '— padrão —' },
+        { value: 'rounded-0',      label: 'Nenhum (reto)' },
+        { value: 'rounded-1',      label: 'Pequeno' },
+        { value: 'rounded',        label: 'Médio' },
+        { value: 'rounded-3',      label: 'Grande' },
+        { value: 'rounded-4',      label: 'Maior' },
+        { value: 'rounded-5',      label: 'Máximo' },
+        { value: 'rounded-pill',   label: 'Pílula' },
+        { value: 'rounded-circle', label: 'Círculo' },
+      ],
+      bind: { kind: 'classGroup',
+        group: ['rounded-0', 'rounded-1', 'rounded', 'rounded-2', 'rounded-3',
+                'rounded-4', 'rounded-5', 'rounded-pill', 'rounded-circle'] } },
+  ];
+}
+
+/**
+ * Sombra (elevação) — utilitários `shadow-*` do Bootstrap. Grupo único.
+ */
+export function shadowControl() {
+  return [
+    { tab: 'style', type: 'select', label: 'Sombra',
+      options: [
+        { value: '',            label: '— nenhuma —' },
+        { value: 'shadow-sm',   label: 'Pequena' },
+        { value: 'shadow',      label: 'Média' },
+        { value: 'shadow-lg',   label: 'Grande' },
+        { value: 'shadow-none', label: 'Forçar sem sombra' },
+      ],
+      bind: { kind: 'classGroup',
+        group: ['shadow-sm', 'shadow', 'shadow-lg', 'shadow-none'] } },
+  ];
+}
+
+/**
+ * Largura e altura relativas (utilitários `w-*` / `h-*`). Não responsivos —
+ * o Bootstrap não fornece variantes por breakpoint para estes.
+ */
+export function sizingControls() {
+  return [
+    { tab: 'style', type: 'select', label: 'Largura',
+      options: [
+        { value: '',       label: '— automática —' },
+        { value: 'w-25',   label: '25%' },
+        { value: 'w-50',   label: '50%' },
+        { value: 'w-75',   label: '75%' },
+        { value: 'w-100',  label: '100%' },
+        { value: 'w-auto', label: 'Auto (conteúdo)' },
+      ],
+      bind: { kind: 'classGroup',
+        group: ['w-25', 'w-50', 'w-75', 'w-100', 'w-auto'] } },
+    { tab: 'style', type: 'select', label: 'Altura',
+      options: [
+        { value: '',       label: '— automática —' },
+        { value: 'h-25',   label: '25%' },
+        { value: 'h-50',   label: '50%' },
+        { value: 'h-75',   label: '75%' },
+        { value: 'h-100',  label: '100%' },
+        { value: 'h-auto', label: 'Auto (conteúdo)' },
+      ],
+      bind: { kind: 'classGroup',
+        group: ['h-25', 'h-50', 'h-75', 'h-100', 'h-auto'] } },
+  ];
+}
+
+/**
+ * Modo de cor (claro/escuro) via atributo `data-bs-theme` (Bootstrap 5.3).
+ * Aplicado num contêiner, força o esquema de cores dos descendentes.
+ * Valor vazio = herdar do contexto pai.
+ */
+export function themeControl() {
+  return [
+    { tab: 'style', type: 'select', label: 'Modo de cor (data-bs-theme)',
+      help: 'Define o esquema de cores deste contêiner e seus filhos (Bootstrap 5.3). Vazio = herdar.',
+      options: [
+        { value: '',      label: '— herdar —' },
+        { value: 'light', label: 'Claro' },
+        { value: 'dark',  label: 'Escuro' },
+      ],
+      bind: { kind: 'attr', key: 'data-bs-theme' } },
+  ];
+}
+
+/**
+ * Cores "suaves" que se adaptam ao modo claro/escuro (Bootstrap 5.3):
+ * fundo `bg-*-subtle`, texto `text-*-emphasis` e borda `border-*-subtle`.
+ * Combinam bem com themeControl() para layouts cientes de tema.
+ */
+export function subtleColorControls() {
+  const TONES = [
+    ['primary', 'Primária'], ['secondary', 'Secundária'], ['success', 'Sucesso'],
+    ['danger', 'Perigo'], ['warning', 'Aviso'], ['info', 'Info'],
+    ['light', 'Clara'], ['dark', 'Escura'],
+  ];
+  const bgGroup = TONES.map(([t]) => `bg-${t}-subtle`);
+  const textGroup = TONES.map(([t]) => `text-${t}-emphasis`);
+  const borderGroup = TONES.map(([t]) => `border-${t}-subtle`);
+  return [
+    { tab: 'style', type: 'select', label: 'Fundo suave (adapta ao tema)',
+      options: [{ value: '', label: '— nenhum —' },
+        ...TONES.map(([t, l]) => ({ value: `bg-${t}-subtle`, label: l }))],
+      bind: { kind: 'classGroup', group: bgGroup } },
+    { tab: 'style', type: 'select', label: 'Texto realçado (adapta ao tema)',
+      options: [{ value: '', label: '— nenhum —' },
+        ...TONES.map(([t, l]) => ({ value: `text-${t}-emphasis`, label: l }))],
+      bind: { kind: 'classGroup', group: textGroup } },
+    { tab: 'style', type: 'select', label: 'Borda suave (adapta ao tema)',
+      options: [{ value: '', label: '— nenhuma —' },
+        ...TONES.map(([t, l]) => ({ value: `border-${t}-subtle`, label: l }))],
+      bind: { kind: 'classGroup', group: borderGroup } },
+  ];
+}
+
+/**
+ * Ajuste de conteúdo de mídia (imagens/vídeo) via `object-fit-*` (Bootstrap 5.3).
+ */
+export function objectFitControl() {
+  return [
+    { tab: 'style', type: 'select', label: 'Ajuste do conteúdo (object-fit)',
+      help: 'Como a imagem preenche suas dimensões. Útil com largura/altura fixas.',
+      options: [
+        { value: '',                   label: '— padrão —' },
+        { value: 'object-fit-contain', label: 'Conter (contain)' },
+        { value: 'object-fit-cover',   label: 'Cobrir (cover)' },
+        { value: 'object-fit-fill',    label: 'Preencher (fill)' },
+        { value: 'object-fit-scale',   label: 'Escala (scale-down)' },
+        { value: 'object-fit-none',    label: 'Nenhum (none)' },
+      ],
+      bind: { kind: 'classGroup', group: ['object-fit-contain','object-fit-cover','object-fit-fill','object-fit-scale','object-fit-none'] } },
+  ];
+}
+
+/**
+ * Utilitários de texto: truncar com reticências, quebrar palavras longas e
+ * controlar wrap/nowrap. Úteis em títulos e parágrafos.
+ */
+export function textUtilControls() {
+  return [
+    { tab: 'style', type: 'toggle', label: 'Truncar com reticências',
+      toggleLabel: 'text-truncate (corta em uma linha com …)',
+      help: 'Requer largura limitada (ex.: w-50 ou contêiner estreito).',
+      bind: { kind: 'classToggle', class: 'text-truncate' } },
+    { tab: 'style', type: 'toggle', label: 'Quebrar palavras longas',
+      toggleLabel: 'text-break (quebra URLs/palavras grandes)',
+      bind: { kind: 'classToggle', class: 'text-break' } },
+    { tab: 'style', type: 'select', label: 'Quebra de linha',
+      options: [
+        { value: '',            label: '— padrão —' },
+        { value: 'text-wrap',   label: 'Permitir quebra' },
+        { value: 'text-nowrap', label: 'Sem quebra (uma linha)' },
+      ],
+      bind: { kind: 'classGroup', group: ['text-wrap', 'text-nowrap'] } },
+  ];
+}
+
+/**
+ * Posicionamento CSS (`position-*`) + centralização absoluta (`translate-middle`).
+ * Aba Avançado — útil para sobreposições / elementos flutuantes.
+ */
+export function positionControls() {
+  return [
+    { tab: 'advanced', type: 'select', label: 'Posição',
+      help: 'position-* do Bootstrap. Para "absoluta/fixa" o elemento-pai normalmente precisa de position-relative.',
+      options: [
+        { value: '',                  label: '— padrão (estática) —' },
+        { value: 'position-relative', label: 'Relativa' },
+        { value: 'position-absolute', label: 'Absoluta' },
+        { value: 'position-fixed',    label: 'Fixa (viewport)' },
+        { value: 'position-sticky',   label: 'Fixa ao rolar (sticky)' },
+      ],
+      bind: { kind: 'classGroup',
+        group: ['position-static', 'position-relative', 'position-absolute',
+                'position-fixed', 'position-sticky'] } },
+    { tab: 'advanced', type: 'toggle', label: 'Centralizar no ponto de ancoragem',
+      toggleLabel: 'translate-middle',
+      help: 'Desloca o elemento em -50%/-50%. Combine com top-*/start-* para centralizar sobreposições.',
+      bind: { kind: 'classToggle', class: 'translate-middle' } },
+  ];
+}
+
+/**
+ * Espaçamento entre itens de um contêiner flex/grid (`gap-*`).
+ */
+export function gapControl() {
+  return [
+    { tab: 'style', type: 'select', label: 'Espaço entre itens (gap)',
+      help: 'Aplica gap-* — vale para filhos diretos em layout flex/grid.',
+      options: [
+        { value: '',      label: '— nenhum —' },
+        { value: 'gap-0', label: '0' },
+        { value: 'gap-1', label: '1' },
+        { value: 'gap-2', label: '2' },
+        { value: 'gap-3', label: '3' },
+        { value: 'gap-4', label: '4' },
+        { value: 'gap-5', label: '5' },
+      ],
+      bind: { kind: 'classGroup',
+        group: ['gap-0', 'gap-1', 'gap-2', 'gap-3', 'gap-4', 'gap-5'] } },
+  ];
+}
+
+/**
  * Animação on-scroll: o bloco anima quando entra na viewport. Grava em
  * `data-animate*` (atributos exportados como estão no HTML). Pré-visualizada
  * no canvas; na página publicada precisa do runtime `scroll-animate.js`.

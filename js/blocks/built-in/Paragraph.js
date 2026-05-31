@@ -1,5 +1,6 @@
 import { Block } from '../Block.js';
-import { spacingControls, advancedControls, colorControl, typographyControl } from '../common-controls.js';
+import { spacingControls, advancedControls, colorControl, typographyControl,
+  textUtilControls } from '../common-controls.js';
 
 /**
  * Profile DOMPurify para texto rico do Paragraph.
@@ -159,7 +160,13 @@ export class Paragraph extends Block {
         ],
         bind: { kind: 'classGroup', responsive: true,
           group: ['text-{bp}-start','text-{bp}-center','text-{bp}-end'] } },
+
+      { tab: 'style', type: 'toggle', label: 'Destaque',
+        toggleLabel: 'lead (parágrafo de destaque)',
+        help: 'Aumenta o tamanho e o peso visual do parágrafo (classe .lead).',
+        bind: { kind: 'classToggle', class: 'lead' } },
       ...typographyControl(),
+      ...textUtilControls(),
       ...colorControl('text', 'Cor do texto'),
       ...colorControl('bg', 'Cor de fundo'),
 

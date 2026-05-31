@@ -1,5 +1,7 @@
 import { Block } from '../Block.js';
-import { spacingControls, advancedControls, colorControl } from '../common-controls.js';
+import { spacingControls, advancedControls, colorControl,
+  borderControls, shadowControl, sizingControls,
+  themeControl, subtleColorControls, positionControls } from '../common-controls.js';
 
 /**
  * Section — container Bootstrap de nível superior.
@@ -44,8 +46,14 @@ export class Section extends Block {
           group: ['py-0','py-1','py-2','py-3','py-4','py-5'] } },
       ...colorControl('bg', 'Cor de fundo'),
       ...colorControl('text', 'Cor do texto'),
+      ...themeControl(),
+      ...subtleColorControls(),
 
+      ...borderControls(),
+      ...shadowControl(),
+      ...sizingControls(),
       ...spacingControls(),
+      ...positionControls(),
       ...advancedControls(),
     ];
   }

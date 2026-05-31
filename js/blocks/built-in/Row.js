@@ -1,5 +1,7 @@
 import { Block } from '../Block.js';
-import { spacingControls, advancedControls } from '../common-controls.js';
+import { spacingControls, advancedControls,
+  borderControls, shadowControl, gapControl,
+  themeControl, subtleColorControls, positionControls } from '../common-controls.js';
 
 export class Row extends Block {
   static type = 'row';
@@ -51,8 +53,14 @@ export class Row extends Block {
         ],
         bind: { kind: 'classGroup',
           group: ['align-items-start','align-items-center','align-items-end'] } },
+      ...gapControl(),
+      ...themeControl(),
+      ...subtleColorControls(),
 
+      ...borderControls(),
+      ...shadowControl(),
       ...spacingControls(),
+      ...positionControls(),
       ...advancedControls(),
     ];
   }

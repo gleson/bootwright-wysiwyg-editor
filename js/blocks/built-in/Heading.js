@@ -1,5 +1,6 @@
 import { Block } from '../Block.js';
-import { spacingControls, advancedControls, colorControl, typographyControl } from '../common-controls.js';
+import { spacingControls, advancedControls, colorControl, typographyControl,
+  textUtilControls } from '../common-controls.js';
 
 /**
  * Heading — h1 a h6, controlado por props.level.
@@ -49,7 +50,21 @@ export class Heading extends Block {
         ],
         bind: { kind: 'classGroup', responsive: true,
           group: ['text-{bp}-start', 'text-{bp}-center', 'text-{bp}-end'] } },
+
+      { tab: 'style', type: 'select', label: 'Estilo de exibição (display)',
+        help: 'Títulos grandes de destaque (display-1 a display-6), independentes do nível semântico.',
+        options: [
+          { value: '',          label: '— normal —' },
+          { value: 'display-1', label: 'Display 1 (maior)' },
+          { value: 'display-2', label: 'Display 2' },
+          { value: 'display-3', label: 'Display 3' },
+          { value: 'display-4', label: 'Display 4' },
+          { value: 'display-5', label: 'Display 5' },
+          { value: 'display-6', label: 'Display 6' },
+        ],
+        bind: { kind: 'classGroup', group: ['display-1','display-2','display-3','display-4','display-5','display-6'] } },
       ...typographyControl(),
+      ...textUtilControls(),
       ...colorControl('text', 'Cor do texto'),
       ...colorControl('bg', 'Cor de fundo'),
 

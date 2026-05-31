@@ -23,11 +23,15 @@ export class List extends Block {
   static render(node) {
     const tag = node.props.ordered ? 'ol' : 'ul';
     const list = document.createElement(tag);
+    // Quando a classe `list-group` está ativa, os itens recebem
+    // `list-group-item` (a classe do <ul>/<ol> vem das classes do nó).
+    const isGroup = node.classes?.includes('list-group');
     const itemsRaw = String(node.props.items ?? '');
     for (const line of itemsRaw.split('\n')) {
       const trimmed = line.trim();
       if (!trimmed) continue;
       const li = document.createElement('li');
+      if (isGroup) li.className = 'list-group-item';
       li.textContent = trimmed;
       list.appendChild(li);
     }
@@ -48,6 +52,17 @@ export class List extends Block {
       { tab: 'style', type: 'toggle', label: 'Inline',
         toggleLabel: 'list-inline (itens lado a lado)',
         bind: { kind: 'classToggle', class: 'list-inline' } },
+
+      { tab: 'style', type: 'toggle', label: 'Lista em grupo',
+        toggleLabel: 'list-group (itens com cartão/borda)',
+        help: 'Transforma a lista no componente list-group do Bootstrap.',
+        bind: { kind: 'classToggle', class: 'list-group' } },
+      { tab: 'style', type: 'toggle', label: 'Sem bordas externas',
+        toggleLabel: 'list-group-flush',
+        bind: { kind: 'classToggle', class: 'list-group-flush' } },
+      { tab: 'style', type: 'toggle', label: 'Numerada (grupo)',
+        toggleLabel: 'list-group-numbered',
+        bind: { kind: 'classToggle', class: 'list-group-numbered' } },
 
       ...spacingControls(),
       ...advancedControls(),

@@ -1,5 +1,6 @@
 import { Block } from '../Block.js';
-import { spacingControls, advancedControls } from '../common-controls.js';
+import { spacingControls, advancedControls,
+  borderControls, shadowControl, sizingControls, objectFitControl } from '../common-controls.js';
 import { computeTransform, computeFilter, hasCssCrop } from '../../utils/imageProcessing.js';
 
 export class Image extends Block {
@@ -138,13 +139,14 @@ export class Image extends Block {
       { tab: 'style', type: 'toggle', label: 'Responsiva',
         toggleLabel: 'img-fluid (max-width: 100%)',
         bind: { kind: 'classToggle', class: 'img-fluid' } },
-      { tab: 'style', type: 'toggle', label: 'Cantos arredondados',
-        toggleLabel: 'rounded',
-        bind: { kind: 'classToggle', class: 'rounded' } },
       { tab: 'style', type: 'toggle', label: 'Thumbnail',
         toggleLabel: 'img-thumbnail (borda + padding)',
         bind: { kind: 'classToggle', class: 'img-thumbnail' } },
 
+      ...objectFitControl(),
+      ...sizingControls(),
+      ...borderControls(),
+      ...shadowControl(),
       ...spacingControls(),
       ...advancedControls(),
     ];

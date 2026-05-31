@@ -1,5 +1,6 @@
 import { Block } from '../Block.js';
-import { spacingControls, advancedControls, colorControl } from '../common-controls.js';
+import { spacingControls, advancedControls, colorControl,
+  borderControls, shadowControl } from '../common-controls.js';
 
 const VARIANTS = [
   'alert-primary','alert-secondary','alert-success','alert-danger',
@@ -38,6 +39,16 @@ export class Alert extends Block {
     p.className = 'mb-0';
     p.textContent = node.props.text ?? '';
     div.appendChild(p);
+
+    // Botão de fechar quando a classe `alert-dismissible` está ativa.
+    if (node.classes?.includes('alert-dismissible')) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'btn-close';
+      btn.setAttribute('data-bs-dismiss', 'alert');
+      btn.setAttribute('aria-label', 'Fechar');
+      div.appendChild(btn);
+    }
     return div;
   }
 
@@ -52,10 +63,16 @@ export class Alert extends Block {
         help: 'Atalho Bootstrap para alert-* (cor + ícone implícito). Use os controles de cor abaixo para custom/gradiente.',
         options: VARIANTS.map((v) => ({ value: v, label: v.replace('alert-', '') })),
         bind: { kind: 'classGroup', group: VARIANTS } },
+      { tab: 'style', type: 'toggle', label: 'Dispensável',
+        toggleLabel: 'alert-dismissible (botão de fechar)',
+        help: 'Adiciona um “×” que fecha o alerta. Requer o JS do Bootstrap na página publicada.',
+        bind: { kind: 'classToggle', class: 'alert-dismissible' } },
 
       ...colorControl('text', 'Cor do texto'),
       ...colorControl('bg', 'Cor de fundo'),
 
+      ...borderControls(),
+      ...shadowControl(),
       ...spacingControls(),
       ...advancedControls(),
     ];
