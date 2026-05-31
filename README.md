@@ -48,10 +48,7 @@
 
 Documentação por framework: [`docs/integrations/`](docs/integrations/README.md).
 
-Para Django, o arquivo legado [`DJANGO_INTEGRATION.md`](DJANGO_INTEGRATION.md)
-é a referência completa.
-
-Changelog: [`CHANGELOG.md`](CHANGELOG.md).
+Para Django, consulte [`docs/integrations/django.md`](docs/integrations/django.md).
 
 ## Executar localmente (desenvolvimento)
 
