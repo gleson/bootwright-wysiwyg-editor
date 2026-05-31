@@ -9,6 +9,3 @@ deltas em cima da API genérica:
 - [rails.md](rails.md) — Rails 7+ com `X-CSRF-Token`
 - [express.md](express.md) — Node/Express com `csurf` ou cookie-csrf
 - [static.md](static.md) — site estático (Netlify Forms / Cloudflare Pages)
-
-> Para Django, o arquivo legado `DJANGO_INTEGRATION.md` na raiz do repositório
-> continua sendo a referência oficial (mais detalhada que `docs/integrations/django.md`).
