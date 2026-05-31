@@ -6,6 +6,7 @@
 - Single Source of Truth: o conteúdo é uma árvore JSON; o DOM é só projeção.
 - Distribuído como pasta de static files (`dist/`) — copie para o `static/` da sua aplicação.
 - Tipos TS (`dist/wysiwyg.d.ts`) e JSON Schema (`dist/schema.v1.json`) acompanham o bundle.
+- Controles visuais por bloco cobrindo utilitários **Bootstrap 5.3**: layout/grid responsivo por breakpoint, cores e **modo claro/escuro** (`data-bs-theme`), bordas, sombra, dimensão, `object-fit`, posição, `gap`, espaçamento e tipografia.
 
 ## Plug-and-play em qualquer stack (1.1.0+)
 
