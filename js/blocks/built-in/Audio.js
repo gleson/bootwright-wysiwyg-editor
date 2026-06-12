@@ -1,5 +1,6 @@
 import { Block } from '../Block.js';
 import { spacingControls, advancedControls } from '../common-controls.js';
+import { safeUrl } from '../../utils/url.js';
 
 export class Audio extends Block {
   static type = 'audio';
@@ -15,7 +16,7 @@ export class Audio extends Block {
 
   static render(node) {
     const audio = document.createElement('audio');
-    audio.src = node.props.src ?? '';
+    audio.src = safeUrl(node.props.src, '');
     if (node.props.controls !== false) audio.controls = true;
     if (node.props.loop)     audio.loop = true;
     if (node.props.autoplay) audio.autoplay = true;

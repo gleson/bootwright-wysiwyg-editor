@@ -2,6 +2,7 @@ import { Block } from '../Block.js';
 import { spacingControls, advancedControls,
   borderControls, shadowControl, sizingControls, objectFitControl } from '../common-controls.js';
 import { computeTransform, computeFilter, hasCssCrop } from '../../utils/imageProcessing.js';
+import { safeUrl } from '../../utils/url.js';
 
 export class Image extends Block {
   static type = 'image';
@@ -34,7 +35,7 @@ export class Image extends Block {
     const fy = Number(node.props.focalY);
 
     const img = document.createElement('img');
-    img.src = node.props.src ?? '';
+    img.src = safeUrl(node.props.src, '');
     img.alt = node.props.alt ?? '';
     if ((Number.isFinite(fx) && fx !== 50) || (Number.isFinite(fy) && fy !== 50)) {
       img.style.objectPosition = `${fx ?? 50}% ${fy ?? 50}%`;

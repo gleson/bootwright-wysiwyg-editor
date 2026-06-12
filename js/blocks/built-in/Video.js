@@ -1,6 +1,7 @@
 import { Block } from '../Block.js';
 import { spacingControls, advancedControls,
   objectFitControl, sizingControls } from '../common-controls.js';
+import { safeUrl } from '../../utils/url.js';
 
 /**
  * Detecta URLs de YouTube/Vimeo e devolve a URL "embed" correspondente.
@@ -66,8 +67,8 @@ export class Video extends Block {
 
     // Vídeo nativo (arquivo .mp4/.webm/etc.)
     const v = document.createElement('video');
-    v.src = src;
-    if (node.props.poster)   v.poster = node.props.poster;
+    v.src = safeUrl(src, '');
+    if (node.props.poster)   v.poster = safeUrl(node.props.poster, '');
     if (node.props.controls !== false) v.controls = true;
     if (node.props.loop)        v.loop = true;
     if (node.props.autoplay)    v.autoplay = true;

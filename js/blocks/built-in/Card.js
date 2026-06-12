@@ -2,6 +2,7 @@ import { Block } from '../Block.js';
 import { spacingControls, advancedControls, colorControl,
   borderControls, shadowControl, sizingControls,
   themeControl, subtleColorControls, positionControls } from '../common-controls.js';
+import { safeUrl } from '../../utils/url.js';
 
 export class Card extends Block {
   static type = 'card';
@@ -31,7 +32,7 @@ export class Card extends Block {
   static _renderImage(node, position) {
     if (!node.props.image) return null;
     const img = document.createElement('img');
-    img.src = node.props.image;
+    img.src = safeUrl(node.props.image, '');
     img.alt = '';
     img.className = position === 'bottom' ? 'card-img-bottom' : 'card-img-top';
     return img;
@@ -76,7 +77,7 @@ export class Card extends Block {
     }
     if (node.props.actionText) {
       const a = document.createElement('a');
-      a.href = node.props.actionHref || '#';
+      a.href = safeUrl(node.props.actionHref);
       a.className = `btn ${node.props.actionVariant || 'btn-primary'}`;
       a.textContent = node.props.actionText;
       body.appendChild(a);

@@ -19,6 +19,8 @@ import { Alert } from './Alert.js';
 import { Card } from './Card.js';
 import { Progress } from './Progress.js';
 import { Spinner } from './Spinner.js';
+import { Breadcrumb } from './Breadcrumb.js';
+import { Pagination } from './Pagination.js';
 import { Carousel } from './Carousel.js';
 import { Tabs } from './Tabs.js';
 import { Accordion } from './Accordion.js';
@@ -43,7 +45,7 @@ export const builtInBlocks = [
   Divider, Spacer, HtmlEmbed,
 
   // === BOOTSTRAP ===
-  Badge, Alert, Card, Progress, Spinner,
+  Badge, Alert, Card, Progress, Spinner, Breadcrumb, Pagination,
 
   // === ELEMENTOS ===
   Carousel, Tabs, Accordion, Repeater, DjangoVar,
@@ -55,7 +57,7 @@ export {
   Section, Row, Column,
   Heading, Paragraph, Blockquote, Image, Audio, Video, Button, List, Icon, Table, Code,
   Divider, Spacer, HtmlEmbed,
-  Badge, Alert, Card, Progress, Spinner,
+  Badge, Alert, Card, Progress, Spinner, Breadcrumb, Pagination,
   Carousel, Tabs, Accordion, Repeater, DjangoVar,
   Form, FormInput, FormTextarea, FormSelect, FormCheckbox, FormSubmit,
 };

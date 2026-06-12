@@ -6,6 +6,7 @@ import {
   familyToStack,
   categoryFor,
 } from '../utils/googleFonts.js';
+import { DEFAULT_THEME, THEME_COLOR_KEYS } from '../utils/bootstrapTheme.js';
 
 /**
  * CustomizationDialog — &lt;dialog&gt; com 4 abas:
@@ -551,6 +552,8 @@ export class CustomizationDialog {
     const help = el('p', { class: 'small text-muted mb-3' },
       'Personalize as opções oferecidas pelos controles de cor e tipografia para refletir a identidade visual do seu site. Cada lista vira uma paleta rápida no painel de propriedades dos blocos.');
 
+    const bootstrapColors = this._buildBootstrapColorsSection();
+
     const palette   = this._buildThemeSection({
       title: 'Paleta de cores',
       description: 'Atalhos no painel "Custom" do controle de cor (texto/fundo).',
@@ -578,7 +581,88 @@ export class CustomizationDialog {
       formBuilder:  () => this._buildFontForm(),
     });
 
-    this.body.append(help, palette, gradients, fonts);
+    this.body.append(help, bootstrapColors, palette, gradients, fonts);
+  }
+
+  /**
+   * Seção "Cores do Bootstrap": um color input por cor de tema (primary,
+   * secondary, …). Alterar repinta o canvas ao vivo (theme:changed →
+   * _injectThemeCSS). Inclui restaurar padrão e baixar o CSS do tema para o
+   * usuário hospedar no próprio site.
+   */
+  _buildBootstrapColorsSection() {
+    const theme = this.editor.getTheme();
+    const wrap = el('div', { class: 'editor-customization-dialog__theme-section' }, [
+      el('h6', { class: 'mb-1' }, [icon('palette-fill'), ' Cores do Bootstrap']),
+      el('p', { class: 'small text-muted mb-2' },
+        'Redefina as cores de tema (primary, secondary, …). Botões, alertas, badges, '
+        + 'utilitários .bg-*/.text-*/.border-* e variantes -subtle passam a usar a cor nova, '
+        + 'no canvas e nos exports.'),
+    ]);
+
+    const grid = el('div', { class: 'editor-bs-colors' });
+    const inputs = {};
+    for (const key of THEME_COLOR_KEYS) {
+      const current = theme[key] || DEFAULT_THEME[key];
+      const colorIn = el('input', {
+        type: 'color',
+        class: 'form-control form-control-color form-control-sm',
+        value: current,
+        title: `${key} (padrão ${DEFAULT_THEME[key]})`,
+        'aria-label': `Cor ${key}`,
+      });
+      inputs[key] = colorIn;
+      const overridden = Boolean(theme[key]);
+      colorIn.addEventListener('input', () => {
+        this.editor.setThemeColor(key, colorIn.value);
+      });
+      grid.appendChild(el('label', { class: 'editor-bs-colors__item' }, [
+        colorIn,
+        el('span', { class: 'editor-bs-colors__name' + (overridden ? ' fw-semibold' : '') }, key),
+      ]));
+    }
+    wrap.appendChild(grid);
+
+    const resetBtn = el('button', { type: 'button', class: 'btn btn-sm btn-outline-secondary' },
+      [icon('arrow-counterclockwise'), ' Restaurar padrão']);
+    resetBtn.addEventListener('click', () => {
+      this.editor.resetTheme();
+      for (const key of THEME_COLOR_KEYS) inputs[key].value = DEFAULT_THEME[key];
+      this.editor.notify.toast('Cores do Bootstrap restauradas ao padrão.', 'info');
+      this._renderActiveTab();
+    });
+
+    const downloadBtn = el('button', { type: 'button', class: 'btn btn-sm btn-primary' },
+      [icon('download'), ' Baixar CSS do tema']);
+    downloadBtn.addEventListener('click', () => this._downloadThemeCss());
+
+    const copyBtn = el('button', { type: 'button', class: 'btn btn-sm btn-outline-secondary' },
+      [icon('clipboard'), ' Copiar CSS']);
+    copyBtn.addEventListener('click', async () => {
+      const css = this.editor.exportThemeCSS();
+      if (!css) { this.editor.notify.toast('Nenhuma cor personalizada ainda.', 'warning'); return; }
+      try {
+        await navigator.clipboard.writeText(css);
+        this.editor.notify.toast('CSS do tema copiado.', 'success');
+      } catch { this.editor.notify.toast('Não foi possível copiar.', 'error'); }
+    });
+
+    wrap.appendChild(el('div', { class: 'd-flex gap-2 flex-wrap mt-2' },
+      [downloadBtn, copyBtn, resetBtn]));
+    return wrap;
+  }
+
+  _downloadThemeCss() {
+    const css = this.editor.exportThemeCSS();
+    if (!css) { this.editor.notify.toast('Nenhuma cor personalizada ainda.', 'warning'); return; }
+    const blob = new Blob([css], { type: 'text/css' });
+    const url = URL.createObjectURL(blob);
+    const a = el('a', { href: url, download: 'bootstrap-theme.css' });
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    this.editor.notify.toast('bootstrap-theme.css baixado. Inclua-o após o CSS do Bootstrap.', 'success');
   }
 
   _buildThemeSection({ title, description, icon: iconName, items, itemRenderer, formBuilder }) {

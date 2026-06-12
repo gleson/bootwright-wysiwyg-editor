@@ -21,6 +21,9 @@ export const ptBR = {
   'topbar.seo': 'SEO da página (meta tags, Open Graph)',
   'topbar.exportJSON': 'Exportar JSON',
   'topbar.exportHTML': 'Exportar HTML',
+  'topbar.io': 'Importar / Exportar',
+  'topbar.io.import': 'Importar',
+  'topbar.io.export': 'Exportar',
   'topbar.htmlSource': 'Editar código-fonte HTML',
   'topbar.language': 'Idioma',
 

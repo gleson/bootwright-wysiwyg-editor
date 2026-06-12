@@ -147,32 +147,8 @@ export class Topbar {
     this.btnSeo.addEventListener('click', () => this.editor.ui.seoDialog?.show());
     this.actions.insertBefore(this.btnSeo, this.btnSave);
 
-    // Exportar JSON
-    this.btnExportJSON = el('button', {
-      type: 'button',
-      class: 'btn btn-sm btn-outline-secondary',
-      title: t('topbar.exportJSON'),
-    }, [icon('braces')]);
-    this.btnExportJSON.addEventListener('click', () => this.editor.ui.exportDialog?.showJSON());
-    this.actions.insertBefore(this.btnExportJSON, this.btnSave);
-
-    // Importar HTML/Markdown
-    this.btnImport = el('button', {
-      type: 'button',
-      class: 'btn btn-sm btn-outline-secondary',
-      title: t('topbar.import'),
-    }, [icon('box-arrow-in-down')]);
-    this.btnImport.addEventListener('click', () => this.editor.ui.importDialog?.show());
-    this.actions.insertBefore(this.btnImport, this.btnSave);
-
-    // Exportar HTML
-    this.btnExportHTML = el('button', {
-      type: 'button',
-      class: 'btn btn-sm btn-outline-secondary',
-      title: t('topbar.exportHTML'),
-    }, [icon('filetype-html')]);
-    this.btnExportHTML.addEventListener('click', () => this.editor.ui.exportDialog?.showHTML());
-    this.actions.insertBefore(this.btnExportHTML, this.btnSave);
+    // Importar / Exportar — dropdown único (HTML / JSON, importar / exportar)
+    this._injectImportExportMenu();
 
     // Editar código-fonte HTML (round-trip: edita o HTML e reconstrói os blocos)
     this.btnHtmlSource = el('button', {
@@ -182,16 +158,50 @@ export class Topbar {
     }, [icon('code-slash')]);
     this.btnHtmlSource.addEventListener('click', () => this.editor.ui.htmlSourceDialog?.show());
     this.actions.insertBefore(this.btnHtmlSource, this.btnSave);
+  }
 
-    // Exportar arquivo HTML standalone (completo, com CSS via CDN)
-    this.btnExportStandalone = el('button', {
+  /**
+   * Dropdown "Importar / Exportar" — reúne importação (HTML/Markdown) e as três
+   * exportações (HTML, JSON, HTML standalone) num só botão. Usa o dropdown do
+   * Bootstrap (bundle já carregado).
+   */
+  _injectImportExportMenu() {
+    const wrap = el('div', { class: 'dropdown editor-io-menu' });
+
+    const toggle = el('button', {
       type: 'button',
-      class: 'btn btn-sm btn-outline-secondary',
-      title: t('topbar.exportStandalone'),
-    }, [icon('file-earmark-code')]);
-    this.btnExportStandalone.addEventListener('click',
-      () => this.editor.ui.exportDialog?.showStandalone());
-    this.actions.insertBefore(this.btnExportStandalone, this.btnSave);
+      class: 'btn btn-sm btn-outline-secondary dropdown-toggle',
+      title: t('topbar.io'),
+      'aria-label': t('topbar.io'),
+      'data-bs-toggle': 'dropdown',
+      'aria-expanded': 'false',
+    }, [icon('arrow-down-up')]);
+
+    const item = (iconName, labelKey, onClick) => {
+      const li = el('li');
+      const btn = el('button', { type: 'button', class: 'dropdown-item' },
+        [icon(iconName), ' ', t(labelKey)]);
+      btn.addEventListener('click', onClick);
+      li.appendChild(btn);
+      return li;
+    };
+
+    const menu = el('ul', { class: 'dropdown-menu dropdown-menu-end' }, [
+      el('li', {}, [el('h6', { class: 'dropdown-header' }, t('topbar.io.import'))]),
+      item('box-arrow-in-down', 'topbar.import',
+        () => this.editor.ui.importDialog?.show()),
+      el('li', {}, [el('hr', { class: 'dropdown-divider' })]),
+      el('li', {}, [el('h6', { class: 'dropdown-header' }, t('topbar.io.export'))]),
+      item('filetype-html', 'topbar.exportHTML',
+        () => this.editor.ui.exportDialog?.showHTML()),
+      item('braces', 'topbar.exportJSON',
+        () => this.editor.ui.exportDialog?.showJSON()),
+      item('file-earmark-code', 'topbar.exportStandalone',
+        () => this.editor.ui.exportDialog?.showStandalone()),
+    ]);
+
+    wrap.append(toggle, menu);
+    this.actions.insertBefore(wrap, this.btnSave);
   }
 
   _toggleSidebars() {

@@ -1,6 +1,7 @@
 import { Block } from '../Block.js';
 import { spacingControls, advancedControls, colorControl,
   shadowControl } from '../common-controls.js';
+import { safeUrl, applyLinkTarget } from '../../utils/url.js';
 
 const VARIANTS = [
   'btn-primary','btn-secondary','btn-success','btn-danger',
@@ -32,8 +33,8 @@ export class Button extends Block {
    */
   static render(node) {
     const a = document.createElement('a');
-    a.href = node.props.href ?? '#';
-    if (node.props.target) a.target = node.props.target;
+    a.href = safeUrl(node.props.href);
+    applyLinkTarget(a, node.props.target);
     a.setAttribute('role', 'button');
     if (node.classes?.includes('disabled')) a.setAttribute('aria-disabled', 'true');
 

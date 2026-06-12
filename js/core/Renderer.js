@@ -1,4 +1,5 @@
 import { el, clear, icon } from '../utils/dom.js';
+import { safeCss } from '../utils/url.js';
 
 /** Igualdade rasa de arrays (por referência dos itens). */
 function sameArray(a, b) {
@@ -145,7 +146,8 @@ export class Renderer {
       if (v == null) continue;
       if (k === 'style') {
         const prev = element.getAttribute('style') || '';
-        element.setAttribute('style', prev ? `${prev}; ${v}` : String(v));
+        const clean = safeCss(v);
+        element.setAttribute('style', prev ? `${prev}; ${clean}` : clean);
       } else {
         element.setAttribute(k, String(v));
       }

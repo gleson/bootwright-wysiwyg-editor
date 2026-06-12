@@ -31,9 +31,43 @@ export class CustomizationStore {
     this.data = {
       css: '', blocks: [], templates: [],
       palette: [], gradients: [], fonts: [],
-      components: [],
+      components: [], theme: {},
     };
     this._load();
+  }
+
+  /* ---------- Tema (cores Bootstrap) ---------- */
+
+  /** Mapa de overrides `{ primary: '#...', ... }` (só cores alteradas). */
+  getTheme() { return { ...(this.data.theme ?? {}) }; }
+
+  /** Define/limpa uma cor de tema. `value` vazio remove o override. */
+  setThemeColor(name, value) {
+    if (!name) return;
+    if (!this.data.theme) this.data.theme = {};
+    const v = String(value ?? '').trim();
+    if (v) this.data.theme[name] = v;
+    else delete this.data.theme[name];
+    this._persist();
+    this.bus.emit('theme:changed', { theme: this.getTheme() });
+  }
+
+  /** Substitui o mapa inteiro de cores de tema. */
+  setTheme(map) {
+    this.data.theme = {};
+    for (const [k, v] of Object.entries(map ?? {})) {
+      const val = String(v ?? '').trim();
+      if (val) this.data.theme[k] = val;
+    }
+    this._persist();
+    this.bus.emit('theme:changed', { theme: this.getTheme() });
+  }
+
+  /** Remove todos os overrides — volta ao tema padrão do Bootstrap. */
+  resetTheme() {
+    this.data.theme = {};
+    this._persist();
+    this.bus.emit('theme:changed', { theme: {} });
   }
 
   /* ---------- CSS ---------- */
@@ -394,6 +428,7 @@ export class CustomizationStore {
       gradients:  Array.isArray(payload.gradients)  ? payload.gradients  : [],
       fonts:      Array.isArray(payload.fonts)      ? payload.fonts      : [],
       components: Array.isArray(payload.components) ? payload.components : [],
+      theme: (payload.theme && typeof payload.theme === 'object') ? payload.theme : {},
     };
 
     if (merge) {
@@ -404,6 +439,7 @@ export class CustomizationStore {
       for (const g of incoming.gradients)  this.data.gradients.push(this._sanitizeGradient(g));
       for (const f of incoming.fonts)      this.data.fonts.push(this._sanitizeFont(f));
       for (const c of incoming.components) this.data.components.push(this._sanitizeComponent(c));
+      this.data.theme = { ...(this.data.theme ?? {}), ...this._sanitizeTheme(incoming.theme) };
     } else {
       this.data.css        = incoming.css;
       this.data.blocks     = incoming.blocks.map((b)     => this._sanitizeBlock(b));
@@ -412,9 +448,11 @@ export class CustomizationStore {
       this.data.gradients  = incoming.gradients.map((g)  => this._sanitizeGradient(g));
       this.data.fonts      = incoming.fonts.map((f)      => this._sanitizeFont(f));
       this.data.components = incoming.components.map((c) => this._sanitizeComponent(c));
+      this.data.theme      = this._sanitizeTheme(incoming.theme);
     }
     this._persist();
     this.bus.emit('css:changed', { css: this.data.css });
+    this.bus.emit('theme:changed', { theme: this.getTheme() });
     this.bus.emit('customblocks:changed', { blocks: this.listBlocks() });
     this.bus.emit('templates:changed', { templates: this.listTemplates() });
     this.bus.emit('palette:changed',   { palette:   this.listPalette() });
@@ -434,6 +472,16 @@ export class CustomizationStore {
       tree: this._stripIds(c.tree ?? { type: 'section', children: [] }),
       createdAt: c.createdAt || new Date().toISOString(),
     };
+  }
+
+  /** Mantém só pares chave→string de cor (hex/rgb). Descarta valores vazios. */
+  _sanitizeTheme(theme) {
+    const out = {};
+    for (const [k, v] of Object.entries(theme ?? {})) {
+      const val = String(v ?? '').trim();
+      if (val) out[k] = val;
+    }
+    return out;
   }
 
   _sanitizePaletteColor(c) {
@@ -507,6 +555,7 @@ export class CustomizationStore {
       this.data.gradients  = Array.isArray(parsed.gradients)  ? parsed.gradients  : [];
       this.data.fonts      = Array.isArray(parsed.fonts)      ? parsed.fonts      : [];
       this.data.components = Array.isArray(parsed.components) ? parsed.components : [];
+      this.data.theme      = (parsed.theme && typeof parsed.theme === 'object') ? parsed.theme : {};
     } catch (err) {
       console.warn('[CustomizationStore] _load falhou:', err);
     }
@@ -526,10 +575,11 @@ export class CustomizationStore {
     this.data = {
       css: '', blocks: [], templates: [],
       palette: [], gradients: [], fonts: [],
-      components: [],
+      components: [], theme: {},
     };
     this._persist();
     this.bus.emit('css:changed', { css: '' });
+    this.bus.emit('theme:changed', { theme: {} });
     this.bus.emit('customblocks:changed', { blocks: [] });
     this.bus.emit('templates:changed',    { templates: [] });
     this.bus.emit('palette:changed',      { palette: [] });

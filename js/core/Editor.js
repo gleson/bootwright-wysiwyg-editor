@@ -16,6 +16,8 @@ import { generateId } from '../utils/id.js';
 import { t } from '../i18n/index.js';
 import { htmlToBlocks } from '../utils/htmlImport.js';
 import { formatHTML } from '../utils/htmlFormat.js';
+import { safeCss } from '../utils/url.js';
+import { generateThemeCss } from '../utils/bootstrapTheme.js';
 import { markdownToHtml } from '../utils/markdownImport.js';
 import { BlockRegistry } from '../blocks/BlockRegistry.js';
 import { builtInBlocks } from '../blocks/built-in/index.js';
@@ -118,7 +120,10 @@ function normalizeInitialContent(raw) {
     const trimmed = v.trim();
     if (!trimmed || trimmed === 'null' || trimmed === '""') return null;
     try { v = JSON.parse(trimmed); }
-    catch { return null; }
+    catch (err) {
+      console.warn('[Editor] initialContent ignorado: JSON inválido —', err.message);
+      return null;
+    }
   }
   if (v == null || typeof v !== 'object') return null;
   if (Array.isArray(v)) return null;
@@ -259,6 +264,8 @@ export class Editor {
     this._mountUI();
     this._injectCustomCSS();
     this._injectFontLinks();
+
+    this._injectThemeCSS();
 
     if (this.config.initialJSON) {
       try {
@@ -527,6 +534,7 @@ export class Editor {
     });
 
     this.bus.on('css:changed', () => this._injectCustomCSS());
+    this.bus.on('theme:changed', () => this._injectThemeCSS());
     this.bus.on('fonts:changed', () => this._injectFontLinks());
     this.bus.on('customizations:imported', () => this._injectFontLinks());
     this.bus.on('customblocks:changed', () => this._registerCustomSnippets());
@@ -549,6 +557,39 @@ export class Editor {
   setCustomCSS(css)        { this.customizations.setCSS(css); }
   getCustomCSS()           { return this.customizations.getCSS(); }
   getCustomClassNames()    { return this.customizations.extractClassNames(); }
+
+  /* ---------- Tema de cores do Bootstrap ---------- */
+
+  /**
+   * Injeta o `<style id="editor-theme-css">` com os overrides de cor do
+   * Bootstrap. Fica ANTES do CSS personalizado no `<head>` para que o usuário
+   * ainda possa sobrescrever o tema via CSS livre.
+   */
+  _injectThemeCSS() {
+    if (typeof document === 'undefined') return;
+    let tag = document.getElementById('editor-theme-css');
+    const css = generateThemeCss(this.customizations.getTheme());
+    if (!css) { if (tag) tag.textContent = ''; return; }
+    if (!tag) {
+      tag = document.createElement('style');
+      tag.id = 'editor-theme-css';
+      const customTag = document.getElementById('editor-custom-css');
+      if (customTag) document.head.insertBefore(tag, customTag);
+      else document.head.appendChild(tag);
+    }
+    tag.textContent = css;
+  }
+
+  getTheme()                  { return this.customizations.getTheme(); }
+  setThemeColor(name, value)  { return this.customizations.setThemeColor(name, value); }
+  setTheme(map)               { return this.customizations.setTheme(map); }
+  resetTheme()                { return this.customizations.resetTheme(); }
+
+  /**
+   * CSS standalone do tema de cores, pronto para salvar como arquivo e incluir
+   * DEPOIS do Bootstrap no site do usuário. Vazio se não há cores alteradas.
+   */
+  exportThemeCSS()            { return generateThemeCss(this.customizations.getTheme()); }
 
   /* ---------- Web fonts (Google Fonts) ---------- */
 
@@ -1774,6 +1815,9 @@ export class Editor {
     }
     const fontLinks = this.exportFontLinks();
     if (fontLinks) head.push(fontLinks);
+    // Tema de cores do Bootstrap — depois do CDN do Bootstrap, antes do CSS livre.
+    const themeCss = this.exportThemeCSS();
+    if (themeCss) head.push(`<style>\n${themeCss}\n</style>`);
     const customCss = this.getCustomCSS();
     if (customCss) head.push(`<style>\n${customCss}\n</style>`);
 
@@ -1823,7 +1867,8 @@ ${scripts.join('\n')}
       if (v == null) continue;
       if (k === 'style') {
         const prev = element.getAttribute('style') || '';
-        element.setAttribute('style', prev ? `${prev}; ${v}` : String(v));
+        const clean = safeCss(v);
+        element.setAttribute('style', prev ? `${prev}; ${clean}` : clean);
       } else {
         element.setAttribute(k, String(v));
       }
@@ -1860,11 +1905,14 @@ ${scripts.join('\n')}
       this._scheduleAutoSave();
     });
     if (typeof window !== 'undefined') {
-      window.addEventListener('beforeunload', (e) => {
+      // Guarda a referência para remover em destroy() — sem isto o handler fica
+      // órfão no window e acumula a cada instância criada/destruída numa SPA.
+      this._beforeUnload = (e) => {
         if (!this._dirty) return;
         e.preventDefault();
         e.returnValue = '';
-      });
+      };
+      window.addEventListener('beforeunload', this._beforeUnload);
     }
   }
 
@@ -1987,7 +2035,12 @@ ${scripts.join('\n')}
    * Use ao destruir o editor (SPA route change, modal close).
    */
   destroy() {
-    try { this.collab?.close?.(); } catch { /* noop */ }
+    try { this.collab?.disconnect?.(); } catch { /* noop */ }
+    clearTimeout(this._autoSaveTimer);
+    if (this._beforeUnload && typeof window !== 'undefined') {
+      window.removeEventListener('beforeunload', this._beforeUnload);
+      this._beforeUnload = null;
+    }
     Editor.instances.delete(this._instanceId());
     this._dispatchDom('editor:destroy', {});
   }

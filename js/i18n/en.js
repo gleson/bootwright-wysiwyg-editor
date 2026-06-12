@@ -20,6 +20,9 @@ export const en = {
   'topbar.seo': 'Page SEO (meta tags, Open Graph)',
   'topbar.exportJSON': 'Export JSON',
   'topbar.exportHTML': 'Export HTML',
+  'topbar.io': 'Import / Export',
+  'topbar.io.import': 'Import',
+  'topbar.io.export': 'Export',
   'topbar.htmlSource': 'Edit HTML source',
   'topbar.language': 'Language',
 

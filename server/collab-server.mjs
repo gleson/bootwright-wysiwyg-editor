@@ -25,6 +25,13 @@ import crypto from 'node:crypto';
 
 const PORT = Number(process.env.PORT) || 8787;
 const WS_GUID = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11';
+/**
+ * Teto de tamanho por mensagem (8 MiB). Frames acima disso derrubam a conexão
+ * em vez de alocar buffers arbitrários — um cliente hostil poderia anunciar
+ * `len=2^63` e esgotar a memória do processo. Mesmo sendo servidor de dev,
+ * uma rede compartilhada justifica o limite.
+ */
+const MAX_MESSAGE_SIZE = 8 * 1024 * 1024;
 
 /** @type {Map<import('node:net').Socket, { id: string, name: string, color: string }>} */
 const clients = new Map();
@@ -175,6 +182,14 @@ function attachFrameReader(socket, onText) {
         offset += 8;
       }
 
+      // RFC 6455: todo frame vindo do cliente DEVE vir mascarado. E nenhum
+      // frame (nem a soma dos fragmentos) pode passar do teto — caso contrário
+      // derrubamos a conexão antes de alocar.
+      if (!masked || len > MAX_MESSAGE_SIZE) {
+        socket.destroy();
+        return;
+      }
+
       let maskKey = null;
       if (masked) {
         if (buffer.length < offset + 4) return;
@@ -212,6 +227,12 @@ function attachFrameReader(socket, onText) {
         // novo frame de dados (texto/binário)
         fragments = [payload];
         fragmentOpcode = opcode;
+      }
+
+      // Soma dos fragmentos também respeita o teto (mensagem fragmentada).
+      if (fragments.reduce((n, f) => n + f.length, 0) > MAX_MESSAGE_SIZE) {
+        socket.destroy();
+        return;
       }
 
       if (fin) {
