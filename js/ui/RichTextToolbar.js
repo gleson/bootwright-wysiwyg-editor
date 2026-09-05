@@ -8,15 +8,29 @@ import { el, icon } from '../utils/dom.js';
  * Implementação via document.execCommand (bem suportado em todos os browsers
  * modernos para esses 5 comandos, apesar do "deprecated" formal do spec).
  *
- * Posicionamento: ancorada acima do elemento em edição, recalcula em scroll
- * e em selectionchange para acompanhar o caret.
+ * Visibilidade: comporta-se como "bubble menu" — a barra é criada quando a
+ * edição inline começa, mas só fica visível enquanto há uma seleção de texto
+ * NÃO colapsada dentro do elemento em edição. Colapsou o caret, clicou fora,
+ * ou a seleção saiu do bloco → some. Sem isso ela ficava pendurada sobre o
+ * texto mesmo depois de o usuário desfazer a seleção.
+ *
+ * Posicionamento: ancorada acima do retângulo da própria seleção (não do bloco
+ * inteiro), com folga suficiente para não cobrir a linha selecionada; cai para
+ * baixo quando não há espaço acima. Recalcula em scroll, resize e
+ * selectionchange.
  */
+
+/** Distância vertical entre a barra e o texto selecionado, em px. */
+const GAP = 12;
+
 export class RichTextToolbar {
   constructor(editor) {
     this.editor = editor;
     this.toolbar = null;
     this.editingEl = null;
     this._rafId = null;
+    /** Trava o auto-hide enquanto um dialog (link) rouba a seleção. */
+    this._pinned = false;
   }
 
   mount() {
@@ -25,9 +39,9 @@ export class RichTextToolbar {
       this._show(id);
     });
     this.editor.bus.on('inline-edit:ended', () => this._hide());
-    document.addEventListener('selectionchange', () => this._reposition());
-    window.addEventListener('scroll', () => this._reposition(), true);
-    window.addEventListener('resize',  () => this._reposition());
+    document.addEventListener('selectionchange', () => this._sync());
+    window.addEventListener('scroll', () => this._sync(), true);
+    window.addEventListener('resize',  () => this._sync());
   }
 
   _show(id) {
@@ -38,6 +52,7 @@ export class RichTextToolbar {
       class: 'editor-rich-toolbar',
       role: 'toolbar',
       'aria-label': 'Formatação de texto',
+      hidden: true,
     });
     this.toolbar.append(
       this._btn('Negrito (Ctrl+B)',    'type-bold',      () => this._exec('bold')),
@@ -50,7 +65,7 @@ export class RichTextToolbar {
       this._btn('Limpar formatação',   'eraser',         () => this._clearFormatting()),
     );
     document.body.appendChild(this.toolbar);
-    this._reposition();
+    this._sync();
 
     // Ctrl+B/I/U dentro do contenteditable já são nativos do browser, mas
     // adicionamos handlers extras pra garantir que o comando dispare mesmo
@@ -69,10 +84,73 @@ export class RichTextToolbar {
     if (this.editingEl && this._keyHandler) {
       this.editingEl.removeEventListener('keydown', this._keyHandler);
     }
+    if (this._rafId) { cancelAnimationFrame(this._rafId); this._rafId = null; }
     this.toolbar?.remove();
     this.toolbar = null;
     this.editingEl = null;
     this._keyHandler = null;
+    this._pinned = false;
+  }
+
+  /**
+   * Range da seleção atual, se ela for uma seleção de texto real (não
+   * colapsada) contida no elemento em edição. Caso contrário, null.
+   */
+  _activeRange() {
+    if (!this.editingEl) return null;
+    const sel = document.getSelection();
+    if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return null;
+    const range = sel.getRangeAt(0);
+    if (range.collapsed) return null;
+    if (!this.editingEl.contains(range.startContainer)) return null;
+    if (!this.editingEl.contains(range.endContainer)) return null;
+    if (!range.toString().trim()) return null;
+    return range;
+  }
+
+  /**
+   * Decide visibilidade + posição a partir da seleção atual. Chamado em
+   * selectionchange, scroll e resize — por isso passa pelo rAF.
+   */
+  _sync() {
+    if (!this.toolbar || !this.editingEl) return;
+    if (this._rafId) cancelAnimationFrame(this._rafId);
+    this._rafId = requestAnimationFrame(() => {
+      this._rafId = null;
+      if (!this.toolbar || !this.editingEl) return;
+      const range = this._activeRange();
+      if (!range) {
+        // Enquanto o dialog de link está aberto a seleção some do documento —
+        // manter a barra visível evita o "pisca-some" no meio da ação.
+        if (!this._pinned) this.toolbar.hidden = true;
+        return;
+      }
+      this.toolbar.hidden = false;
+      this._place(range);
+    });
+  }
+
+  /** Posiciona a barra acima (ou abaixo) do retângulo da seleção. */
+  _place(range) {
+    // getClientRects() dá um retângulo por linha; o primeiro é onde a seleção
+    // começa — é lá que a barra deve aparecer numa seleção multi-linha.
+    const rects = range.getClientRects();
+    const rect = rects.length ? rects[0] : range.getBoundingClientRect();
+    if (!rect || (!rect.width && !rect.height)) return;
+
+    const tw = this.toolbar.offsetWidth;
+    const th = this.toolbar.offsetHeight;
+
+    // Acima da linha selecionada; cai para baixo se não couber na viewport.
+    const above = rect.top - th - GAP;
+    const top = above < 8 ? rect.bottom + GAP : above;
+
+    // Centralizada no trecho selecionado, presa às bordas da janela.
+    const centered = rect.left + (rect.width / 2) - (tw / 2);
+    const left = Math.max(8, Math.min(centered, window.innerWidth - tw - 8));
+
+    this.toolbar.style.top  = `${top + window.scrollY}px`;
+    this.toolbar.style.left = `${left + window.scrollX}px`;
   }
 
   _btn(title, iconName, onClick) {
@@ -164,13 +242,21 @@ export class RichTextToolbar {
     // Salva a Range ANTES de abrir o dialog — o modal mata a selection.
     const savedRange = sel?.rangeCount ? sel.getRangeAt(0).cloneRange() : null;
 
-    const result = await this.editor.notify.linkDialog({
-      url:    currentLink?.url    ?? '',
-      target: currentLink?.target ?? '',
-      rel:    currentLink?.rel    ?? '',
-      hasLink: !!currentLink,
-    });
-    if (result === null) return;
+    // O dialog limpa a seleção do documento; sem o pin, o _sync esconderia a
+    // barra no meio da ação e ela não voltaria ao confirmar.
+    this._pinned = true;
+    let result;
+    try {
+      result = await this.editor.notify.linkDialog({
+        url:    currentLink?.url    ?? '',
+        target: currentLink?.target ?? '',
+        rel:    currentLink?.rel    ?? '',
+        hasLink: !!currentLink,
+      });
+    } finally {
+      this._pinned = false;
+    }
+    if (result === null) { this._sync(); return; }
 
     // Restaura a selection
     if (savedRange) {
@@ -216,22 +302,4 @@ export class RichTextToolbar {
     else       el.removeAttribute(attr);
   }
 
-  _reposition() {
-    if (!this.toolbar || !this.editingEl) return;
-    if (this._rafId) cancelAnimationFrame(this._rafId);
-    this._rafId = requestAnimationFrame(() => {
-      this._rafId = null;
-      if (!this.toolbar || !this.editingEl) return;
-      const rect = this.editingEl.getBoundingClientRect();
-      const tw = this.toolbar.offsetWidth;
-      const th = this.toolbar.offsetHeight;
-      // Acima do elemento; cai para baixo se não houver espaço.
-      const top  = rect.top - th - 6 < 8
-        ? rect.bottom + 6
-        : rect.top - th - 6;
-      const left = Math.max(8, Math.min(rect.left, window.innerWidth - tw - 8));
-      this.toolbar.style.top  = `${top + window.scrollY}px`;
-      this.toolbar.style.left = `${left + window.scrollX}px`;
-    });
-  }
 }

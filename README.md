@@ -100,8 +100,13 @@ instrucoes.md           # briefing original do projeto
   <button type="submit">Publicar</button>
 </form>
 
+{# Conteúdo inicial: json_script, NUNCA |safe — ver docs/integrations/django.md §9.1 #}
+{{ conteudo_json|json_script:"conteudo-json-data" }}
+
 <script type="module">
   import { Editor } from "{% static 'wysiwyg/js/core/Editor.js' %}";
+
+  const dataEl = document.getElementById('conteudo-json-data');
 
   new Editor({
     rootElement: document.getElementById('meu-editor'),
@@ -110,7 +115,7 @@ instrucoes.md           # briefing original do projeto
     saveUrl:     "{% url 'editor:save' %}",     // opcional
     uploadUrl:   "{% url 'editor:upload' %}",   // opcional — POST de upload
     assetsUrl:   "{% url 'editor:assets' %}",   // opcional — GET lista de assets
-    initialJSON: {{ conteudo_json|safe|default:"null" }},
+    initialJSON: dataEl ? JSON.parse(dataEl.textContent) : null,
   }).init();
 </script>
 ```

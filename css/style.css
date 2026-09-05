@@ -24,6 +24,13 @@
   --editor-canvas-max-desktop: 100%;
   --editor-canvas-max-tablet: 768px;
   --editor-canvas-max-mobile: 380px;
+
+  /* Respiro interno do canvas. Existe só no editor — o HTML exportado não
+     carrega este padding — e serve para o conteúdo (principalmente blocos
+     soltos na raiz, sem Section/container) não encostar na borda enquanto se
+     edita. Hosts que queiram fidelidade pixel-perfect podem zerar. */
+  --editor-canvas-padding: 1.75rem 1.5rem;
+  --editor-canvas-padding-mobile: 1rem 0.75rem;
 }
 
 html, body {
@@ -152,7 +159,11 @@ html, body {
   min-height: calc(100vh - var(--editor-topbar-height) - 3rem);
   box-shadow: 0 1px 3px rgba(0,0,0,0.04);
   transition: max-width 0.25s ease;
+  padding: var(--editor-canvas-padding);
+  box-sizing: border-box;
 }
+
+.editor-canvas[data-device="mobile"] { padding: var(--editor-canvas-padding-mobile); }
 
 .editor-canvas[data-device="desktop"] { max-width: var(--editor-canvas-max-desktop); }
 .editor-canvas[data-device="tablet"]  { max-width: var(--editor-canvas-max-tablet); }
@@ -1771,6 +1782,8 @@ html, body {
   font-size: 0.875rem;
   user-select: none;
 }
+/* `display: inline-flex` acima venceria o [hidden] do UA stylesheet. */
+.editor-rich-toolbar[hidden] { display: none; }
 .editor-rich-toolbar__btn {
   border: none;
   background: transparent;

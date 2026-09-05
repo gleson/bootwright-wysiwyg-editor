@@ -132,8 +132,9 @@ const editor = new Editor({
   assetsUrl:    "{% url 'wysiwyg:assets' %}",   // GET → [{ url, name?, kind? }]
 
   // CONTEÚDO INICIAL — aceita null, "", "{}", string-encoded ou objeto.
-  // O |default:"null" é opcional.
-  initialJSON:  {{ pagina.conteudo_json|safe|default:"null" }},
+  // NUNCA interpole o JSON direto no <script> (ver "Passando o conteúdo
+  // inicial" abaixo): use json_script + JSON.parse.
+  initialJSON:  JSON.parse(document.getElementById('conteudo-json').textContent),
 
   // AUTO-SAVE — autoSaveKey é OBRIGATÓRIO (chaves genéricas cruzam rascunhos
   // entre páginas diferentes). Sem ele o auto-save é desligado com warning.
@@ -470,17 +471,69 @@ const customCss = editor.getCustomCSS();
 document.getElementById('custom_css').value = customCss;
 ```
 
-Ao carregar o editor:
+Ao carregar o editor (sempre via `json_script` — ver seção 9.1):
+```django
+{{ pagina.conteudo_json|json_script:"conteudo-json" }}
+{{ pagina.customizacoes|json_script:"customizacoes-json" }}
+```
 ```js
 new Editor({
   rootElement: ...,
-  initialJSON: {{ pagina.conteudo_json|safe|default:"null" }},
+  initialJSON: JSON.parse(document.getElementById('conteudo-json').textContent),
   onSave: async (json) => { /* ... */ },
 }).init();
 
 // Logo após o init():
-editor.importCustomizations({{ pagina.customizacoes|safe|default:"{}" }});
+editor.importCustomizations(
+  JSON.parse(document.getElementById('customizacoes-json').textContent)
+);
 ```
+
+### 9.1. Passando o conteúdo inicial — use `json_script`, nunca `|safe`
+
+Este é o erro de integração mais comum e o mais difícil de diagnosticar:
+
+```django
+{# ❌ NUNCA #}
+<script type="module">
+  const initialJSON = {{ pagina.conteudo_json|safe }};
+</script>
+```
+
+Dois motivos, ambos quebram a **página inteira** (tela branca, editor não monta,
+botões da topbar somem — porque o `<script type="module">` inteiro falha):
+
+1. **`conteudo_json` é um `JSONField`** → o Django imprime o `repr()` do dict
+   Python, não JSON. Assim que o conteúdo tiver um booleano ou nulo (blocos
+   Lista, Imagem, Vídeo, Carousel, Formulário… todos têm), o script recebe
+   `True` / `False` / `None`, que não existem em JavaScript →
+   `Uncaught SyntaxError`.
+2. **Qualquer texto contendo `</script>`** (um bloco HTML embed, uma citação de
+   código) fecha o `<script>` no meio da string e destrói o resto da página.
+
+O jeito certo é o filtro embutido `json_script`, que serializa como JSON de
+verdade e escapa `<`, `>` e `&`:
+
+```django
+{# ✅ SEMPRE #}
+{{ pagina.conteudo_json|json_script:"conteudo-json" }}
+<script type="module">
+  import { Editor } from "{% static 'wysiwyg/dist/wysiwyg.esm.js' %}";
+
+  const el = document.getElementById('conteudo-json');
+  const initialJSON = el ? JSON.parse(el.textContent) : null;
+
+  new Editor({ rootElement: ..., initialJSON }).init();
+</script>
+```
+
+O editor aceita `initialJSON` como objeto, como string JSON, como array de nós
+de topo ou como `null` — o que ele não tem como consertar é um `<script>` que
+nem chega a executar.
+
+Se o campo for um `TextField` guardando a string JSON (em vez de `JSONField`),
+`json_script` também funciona: o valor chega como string e o editor faz o
+`JSON.parse` interno.
 
 ---
 
@@ -520,24 +573,34 @@ editor.importCustomizations({{ pagina.customizacoes|safe|default:"{}" }});
   <script src="{% static 'wysiwyg/vendor/bootstrap.bundle.min.js' %}"></script>
   <script src="{% static 'wysiwyg/vendor/purify.min.js' %}"></script>
 
+  {# Conteúdo inicial — json_script escapa corretamente (ver seção 9.1) #}
+  {{ pagina.conteudo_json|json_script:"conteudo-json-data" }}
+  {{ pagina.customizacoes|json_script:"customizacoes-data" }}
+
   <script type="module">
     import { Editor } from "{% static 'wysiwyg/dist/wysiwyg.esm.js' %}";
+
+    const readJson = (id) => {
+      const el = document.getElementById(id);
+      try { return el ? JSON.parse(el.textContent) : null; }
+      catch { return null; }
+    };
+    const initialJSON = readJson('conteudo-json-data');
 
     const editor = new Editor({
       rootElement:  document.getElementById('editor-root'),
       csrfToken:    '{{ csrf_token }}',
       uploadUrl:    "{% url 'wysiwyg:upload' %}",
       assetsUrl:    "{% url 'wysiwyg:assets' %}",
-      initialJSON:  {{ pagina.conteudo_json|safe|default:"null" }},
+      initialJSON:  initialJSON,
       autoSaveKey:  'editor:{{ pagina.pk }}',
       // collabUrl: 'wss://{{ request.get_host }}/ws/wysiwyg/{{ pagina.pk }}/',
       // collabName: '{{ request.user.get_full_name }}',
     }).init();
 
     // Restaurar customizações salvas
-    {% if pagina.customizacoes %}
-    editor.importCustomizations({{ pagina.customizacoes|safe }});
-    {% endif %}
+    const customizacoes = readJson('customizacoes-data');
+    if (customizacoes) editor.importCustomizations(customizacoes);
 
     // Preencher campos hidden antes de qualquer submit
     document.getElementById('editor-form').addEventListener('submit', () => {

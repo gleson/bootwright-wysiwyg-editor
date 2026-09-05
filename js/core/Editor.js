@@ -110,6 +110,7 @@ const DJANGO_ONLY_BLOCK_TYPES = new Set([
  *   - "\"\"", '""'               → null (string vazia escapada)
  *   - "<json-string>"            → JSON.parse + revalidação
  *   - { type, children, ... }    → devolve direto
+ *   - [ {…}, {…} ]               → tratado como lista de nós de topo
  */
 function normalizeInitialContent(raw) {
   if (raw == null) return null;
@@ -126,9 +127,51 @@ function normalizeInitialContent(raw) {
     }
   }
   if (v == null || typeof v !== 'object') return null;
-  if (Array.isArray(v)) return null;
+  // Array de nós de topo (host que persistiu só `root.children`).
+  if (Array.isArray(v)) return v.length ? { type: 'root', children: v } : null;
   if (Object.keys(v).length === 0) return null;
   return v;
+}
+
+/**
+ * Normaliza a forma da árvore aceita por `loadJSON`. O contrato oficial é
+ * `{ type: 'root', children: [...] }`, mas integrações costumam persistir
+ * variações — e um throw aqui deixa o editor montado e o canvas vazio, o pior
+ * resultado possível para quem só quer reabrir o que salvou. Aceita:
+ *   - { type: 'root', ... }          → devolve como está
+ *   - [ {…}, {…} ]                   → lista de nós de topo
+ *   - { children: [...] }            → falta só o `type`
+ *   - { id, type: 'paragraph', … }   → nó único solto (sem container/raiz)
+ * Devolve null quando não há nada aproveitável.
+ */
+function normalizeTreeData(raw) {
+  if (raw == null) return null;
+  let v = raw;
+  if (typeof v === 'string') {
+    const trimmed = v.trim();
+    if (!trimmed || trimmed === 'null' || trimmed === '""') return null;
+    try { v = JSON.parse(trimmed); }
+    catch (err) {
+      throw new Error(`[Editor] loadJSON: JSON inválido — ${err.message}`);
+    }
+  }
+  if (typeof v !== 'object') return null;
+
+  if (Array.isArray(v)) {
+    return { type: 'root', props: {}, classes: [], attrs: {}, children: v };
+  }
+  if (v.type === 'root') return v;
+  // `type` presente e diferente de 'root' identifica um NÓ (que também tem
+  // `children`), não uma raiz — por isso vem antes do teste de children.
+  if (typeof v.type === 'string' && v.type) {
+    return { type: 'root', props: {}, classes: [], attrs: {}, children: [v] };
+  }
+  if (Array.isArray(v.children)) {
+    // Objeto raiz sem `type` mas com filhos: preserva props/classes/attrs de
+    // página (SEO, comentários) e só corrige o type.
+    return { ...v, type: 'root' };
+  }
+  return null;
 }
 
 /**
@@ -1553,8 +1596,17 @@ export class Editor {
     return this.state.serialize();
   }
 
+  /**
+   * Substitui o conteúdo da página pela árvore recebida. Tolera as variações
+   * de forma descritas em `normalizeTreeData` — inclusive páginas cujos blocos
+   * de topo são parágrafos/títulos/rows soltos, sem Section envolvendo.
+   */
   loadJSON(data) {
-    this.state.replace(data);
+    const tree = normalizeTreeData(data);
+    if (!tree) {
+      throw new Error('[Editor] loadJSON: conteúdo vazio ou em formato não reconhecido.');
+    }
+    this.state.replace(tree);
     this._migrateNodes();
     this._dirty = false;
   }

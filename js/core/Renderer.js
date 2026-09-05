@@ -104,7 +104,9 @@ export class Renderer {
     return el('div', { class: 'editor-canvas__placeholder' }, [
       icon('cursor-text'),
       el('p', {}, 'Canvas vazio'),
-      el('small', {}, 'Use a aba "Blocos" no painel esquerdo para começar.'),
+      el('small', {}, 'Use a aba "Blocos" no painel esquerdo para começar. '
+        + 'Parágrafos, títulos e linhas podem ir direto aqui — a Seção só é '
+        + 'necessária se você quiser o container do Bootstrap.'),
     ]);
   }
 

@@ -6,9 +6,14 @@ import { spacingControls, advancedControls, colorControl,
 /**
  * Section — container Bootstrap de nível superior.
  *
- * Renderiza como <section class="container">. Para alternar fluid/centered,
- * o painel direito (Fase 4) trocará a classe `container` por `container-fluid`
- * — este bloco não carrega esse estado em props.
+ * Renderiza como <section class="container">. O controle "Largura" no painel
+ * direito troca entre `container`, `container-fluid` e nenhuma das duas
+ * ("sem container", para páginas que já embrulham o conteúdo num container e
+ * ganhariam padding lateral duplicado) — este bloco não carrega esse estado
+ * em props, é só classe.
+ *
+ * Section NÃO é obrigatória: parágrafos, títulos, rows e qualquer outro bloco
+ * podem ser inseridos direto na raiz do canvas (ver Editor.loadJSON/Renderer).
  */
 export class Section extends Block {
   static type = 'section';
@@ -27,12 +32,15 @@ export class Section extends Block {
 
   static settings(node) {
     return [
-      { tab: 'style', type: 'toggle', label: 'Largura',
-        toggleLabel: 'Container fluido (sem max-width)',
-        bind: { kind: 'classToggle',
-          class: 'container-fluid',
-          removes: ['container'],
-          addsWhenOff: ['container'] } },
+      { tab: 'style', type: 'select', label: 'Largura',
+        help: 'Escolha "Sem container" quando a página que hospeda o conteúdo '
+            + 'já tiver um `.container` — evita padding lateral duplicado.',
+        options: [
+          { value: 'container',       label: 'Container centralizado' },
+          { value: 'container-fluid', label: 'Container fluido (100%)' },
+          { value: '',                label: 'Sem container (herda do site)' },
+        ],
+        bind: { kind: 'classGroup', group: ['container', 'container-fluid'] } },
       { tab: 'style', type: 'select', label: 'Padding vertical',
         options: [
           { value: '',     label: '— nenhum —' },
